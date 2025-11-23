@@ -1,4 +1,4 @@
-import express from 'express'
+import { Request, Response, NextFunction } from 'express'
 import { ValidationChain, validationResult } from 'express-validator'
 import { RunnableValidationChains } from 'express-validator/lib/middlewares/schema'
 import { HttpStatus } from '~/constants/httpStatus'
@@ -6,7 +6,7 @@ import { EntityError, ErrorWithStatus } from '~/models/Errors'
 
 // can be reused by many routes
 export const validate = (validation: RunnableValidationChains<ValidationChain>) => {
-  return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
     // sequential processing, stops running validations chain if one fails.
     await validation.run(req)
     const errors = validationResult(req)

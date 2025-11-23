@@ -186,6 +186,7 @@ export const accessTokenValidator = validate(
               const decoded_authorization = await verifyToken({ token: access_token })
               ;(req as Request).decoded_authorization = decoded_authorization
             } catch (error) {
+              // Xử lý lỗi từ verifyToken
               throw new ErrorWithStatus({
                 message: capitalize((error as JsonWebTokenError).message),
                 status: HttpStatus.UNAUTHORIZED
@@ -226,6 +227,7 @@ export const refreshTokenValidator = validate(
               ;(req as Request).decoded_refresh_token = decoded_refresh_token
               return true
             } catch (error) {
+              // Xử lý lỗi từ verifyToken
               if (error instanceof JsonWebTokenError) {
                 throw new ErrorWithStatus({
                   message: capitalize((error as JsonWebTokenError).message),
@@ -233,6 +235,7 @@ export const refreshTokenValidator = validate(
                 })
               }
 
+              // Lỗi khác
               throw error
             }
           }

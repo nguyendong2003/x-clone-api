@@ -22,7 +22,7 @@ interface UserType {
 }
 
 export default class User {
-  id?: ObjectId
+  _id?: ObjectId
   name: string
   email: string
   date_of_birth: Date
@@ -42,7 +42,7 @@ export default class User {
 
   constructor(user: UserType) {
     const date = new Date()
-    this.id = user._id
+    this._id = user._id
     this.name = user.name || ''
     this.email = user.email
     this.date_of_birth = user.date_of_birth || new Date()

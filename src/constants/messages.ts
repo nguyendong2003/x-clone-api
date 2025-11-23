@@ -6,6 +6,7 @@ export const UsersMessages = {
   EMAIL_IS_REQUIRED: 'Email is required',
   EMAIL_INVALID: 'Invalid email address',
   EMAIL_ALREADY_EXISTS: 'Email is already exists',
+  EMAIL_OR_PASSWORD_INCORRECT: 'Email or password is incorrect',
   PASSWORD_IS_REQUIRED: 'Password is required',
   PASSWORD_MUST_BE_STRING: 'Password must be a string',
   PASSWORD_LENGTH_INVALID: 'Password must be between 6 and 50 characters long',
@@ -17,5 +18,7 @@ export const UsersMessages = {
   CONFIRM_PASSWORD_NOT_STRONG_ENOUGH:
     'Confirm password must be at least 6 characters long and include uppercase, lowercase, number, and symbol',
   CONFIRM_PASSWORD_NOT_MATCH: 'Confirm password does not match password',
-  DATE_OF_BIRTH_INVALID: 'Date of birth must be a valid ISO8601 date string'
+  DATE_OF_BIRTH_INVALID: 'Date of birth must be a valid ISO8601 date string',
+  LOGIN_SUCCESS: 'Login success',
+  REGISTER_SUCCESS: 'Register success'
 } as const

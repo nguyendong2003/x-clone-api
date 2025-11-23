@@ -8,6 +8,7 @@ import { StringValue } from 'ms'
 import RefreshToken from '~/models/schemas/RefreshToken.schemas'
 import { ObjectId } from 'mongodb'
 import { config } from 'dotenv'
+import { UsersMessages } from '~/constants/messages'
 
 config()
 
@@ -75,6 +76,11 @@ class UsersService {
       access_token,
       refresh_token
     }
+  }
+
+  async logout(refresh_token: string) {
+    const result = await databaseService.refreshTokens.deleteOne({ token: refresh_token })
+    return result
   }
 }
 

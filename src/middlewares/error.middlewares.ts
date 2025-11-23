@@ -8,7 +8,7 @@ export const defaultErrorHandler = (err: any, req: Request, res: Response, next:
     // omit: loại bỏ thuộc tính status khỏi body err khi trả về response
     return res.status(err.status).json(omit(err, ['status']))
   }
- 
+
   // để hiển thị tất cả các thuộc tính của err trong response
   Object.getOwnPropertyNames(err).forEach((key) => {
     Object.defineProperty(err, key, { enumerable: true })

@@ -112,7 +112,7 @@ class UsersService {
             // updated_at: new Date()
           },
           $currentDate: {
-            updated_at: true // MongoDB will set the current date for updated_at
+            updated_at: true // MongoDB will set the current date for updated_at    // cách 1
           }
         }
       )
@@ -136,6 +136,20 @@ class UsersService {
     )
     return result
     */
+  }
+
+  async resendVerifyEmail(user_id: string) {
+    const email_verify_token = await this.signEmailVerifyToken(user_id)
+    const result = await databaseService.users.updateOne({ _id: new ObjectId(user_id) }, [
+      {
+        $set: {
+          email_verify_token,
+          updated_at: '$$NOW' // cách 2: dùng '$$NOW' nhưng phải để trong mảng [ { } ]
+        }
+      }
+    ])
+
+    return result
   }
 }
 

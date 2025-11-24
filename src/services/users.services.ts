@@ -180,6 +180,22 @@ class UsersService {
     console.log(`Send email to user with forgot password token: ${forgot_password_token}`)
     return result
   }
+
+  async resetPassword(user_id: string, password: string) {
+    const result = await databaseService.users.updateOne(
+      { _id: new ObjectId(user_id) },
+      {
+        $set: {
+          password: hashPassword(password),
+          forgot_password_token: ''
+        },
+        $currentDate: {
+          updated_at: true // MongoDB will set the current date for updated_at
+        }
+      }
+    )
+    return result
+  }
 }
 
 const usersService = new UsersService()

@@ -49,7 +49,7 @@ export const verifyEmailController = async (
   res: Response
 ) => {
   const { user_id } = req.decoded_email_verify_token as TokenPayload
-  const user = await databaseService.users.findOne({ _id: new ObjectId(user_id) })
+  const user = await usersService.getUserById(user_id)
 
   // Nếu không tìm thấy user thì trả về lỗi
   if (!user) {
@@ -69,7 +69,7 @@ export const verifyEmailController = async (
 
 export const resendVerifyEmailController = async (req: Request, res: Response) => {
   const { user_id } = req.decoded_authorization as TokenPayload
-  const user = await databaseService.users.findOne({ _id: new ObjectId(user_id) })
+  const user = await usersService.getUserById(user_id)
 
   // Nếu không tìm thấy user thì trả về lỗi
   if (!user) {
@@ -109,4 +109,16 @@ export const resetPasswordController = async (
   const { password } = req.body
   await usersService.resetPassword(user_id, password)
   return res.json({ message: UsersMessages.RESET_PASSWORD_SUCCESS })
+}
+
+export const getMeController = async (req: Request, res: Response, next: NextFunction) => {
+  const { user_id } = req.decoded_authorization as TokenPayload
+  const user = await usersService.getUserByIdPublic(user_id)
+
+  // Nếu không tìm thấy user thì trả về lỗi
+  if (!user) {
+    return res.status(HttpStatus.NOT_FOUND).json({ message: UsersMessages.USER_NOT_FOUND })
+  }
+
+  return res.json({ message: UsersMessages.GET_ME_SUCCESS, result: user })
 }

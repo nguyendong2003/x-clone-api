@@ -92,6 +92,28 @@ class UsersService {
     }
   }
 
+  // Lấy thông tin user bao gồm các trường nhạy cảm
+  async getUserById(user_id: string) {
+    const user = await databaseService.users.findOne({ _id: new ObjectId(user_id) })
+    return user
+  }
+
+  // Lấy thông tin user không bao gồm các trường nhạy cảm
+  async getUserByIdPublic(user_id: string) {
+    // dùng projection để không lấy các trường nhạy cảm
+    const user = await databaseService.users.findOne(
+      { _id: new ObjectId(user_id) },
+      {
+        projection: {
+          password: 0,
+          email_verify_token: 0,
+          forgot_password_token: 0
+        }
+      }
+    )
+    return user
+  }
+
   async checkEmailExist(email: string) {
     const user = await databaseService.users.findOne({ email })
     return Boolean(user)

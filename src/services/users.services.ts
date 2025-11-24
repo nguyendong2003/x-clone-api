@@ -108,8 +108,11 @@ class UsersService {
         {
           $set: {
             email_verify_token: '',
-            verify: UserVerifyStatus.Verified,
-            updated_at: new Date()
+            verify: UserVerifyStatus.Verified
+            // updated_at: new Date()
+          },
+          $currentDate: {
+            updated_at: true // MongoDB will set the current date for updated_at
           }
         }
       )

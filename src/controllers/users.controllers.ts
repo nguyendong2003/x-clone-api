@@ -9,6 +9,7 @@ import {
   RegisterReqBody,
   ResetPasswordReqBody,
   TokenPayload,
+  UnfollowReqParams,
   UpdateMeReqBody,
   VerifyEmailReqBody,
   VerifyForgotPasswordReqBody
@@ -152,4 +153,16 @@ export const followController = async (req: Request<ParamsDictionary, unknown, F
   }
 
   return res.json({ message: UsersMessages.FOLLOW_SUCCESS })
+}
+
+export const unfollowController = async (req: Request<UnfollowReqParams>, res: Response) => {
+  const { user_id } = req.decoded_authorization as TokenPayload
+  const { followed_user_id } = req.params
+  const result = await usersService.unfollowUser(user_id, followed_user_id)
+
+  if (!result) {
+    return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: UsersMessages.UNFOLLOW_FAILED })
+  }
+
+  return res.json({ message: UsersMessages.UNFOLLOW_SUCCESS })
 }

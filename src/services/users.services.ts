@@ -8,6 +8,7 @@ import { StringValue } from 'ms'
 import RefreshToken from '~/models/schemas/RefreshToken.schemas'
 import { ObjectId } from 'mongodb'
 import { config } from 'dotenv'
+import Follower from '~/models/schemas/Follower.schemas'
 
 config()
 
@@ -118,6 +119,21 @@ class UsersService {
     // dùng projection để không lấy các trường nhạy cảm
     const user = await databaseService.users.findOne(
       { _id: new ObjectId(user_id) },
+      {
+        projection: {
+          password: 0,
+          email_verify_token: 0,
+          forgot_password_token: 0
+        }
+      }
+    )
+    return user
+  }
+
+  async getUserByUsernamePublic(username: string) {
+    // dùng projection để không lấy các trường nhạy cảm
+    const user = await databaseService.users.findOne(
+      { username },
       {
         projection: {
           password: 0,
@@ -259,6 +275,30 @@ class UsersService {
     )
 
     return user
+  }
+
+  async followUser(user_id: string, followed_user_id: string) {
+    const follower = await databaseService.followers.findOne({
+      user_id: new ObjectId(user_id),
+      followed_user_id: new ObjectId(followed_user_id)
+    })
+
+    if (!follower) {
+      const result = await databaseService.followers.insertOne(
+        new Follower({
+          user_id: new ObjectId(user_id),
+          followed_user_id: new ObjectId(followed_user_id)
+        })
+      )
+
+      if (!result.acknowledged || !result.insertedId) {
+        return false
+      }
+
+      return true
+    }
+
+    return true
   }
 }
 

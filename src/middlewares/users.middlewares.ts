@@ -12,6 +12,8 @@ import { verifyToken } from '~/utils/jwt'
 import { validate } from '~/utils/validation'
 import { config } from 'dotenv'
 import { ObjectId } from 'mongodb'
+import { TokenPayload } from '~/models/requests/User.requests'
+import { UserVerifyStatus } from '~/constants/enums'
 
 config()
 
@@ -73,6 +75,33 @@ const confirmPasswordSchema: ParamSchema = {
   }
 }
 
+const nameSchema: ParamSchema = {
+  notEmpty: {
+    errorMessage: UsersMessages.NAME_IS_REQUIRED
+  },
+  isString: {
+    errorMessage: UsersMessages.NAME_MUST_BE_STRING
+  },
+  trim: true,
+  isLength: {
+    options: {
+      min: 1,
+      max: 100
+    },
+    errorMessage: UsersMessages.NAME_LENGTH_INVALID
+  }
+}
+
+const dateOfBirthSchema: ParamSchema = {
+  isISO8601: {
+    options: {
+      strict: true,
+      strictSeparator: true
+    }
+  },
+  errorMessage: UsersMessages.DATE_OF_BIRTH_INVALID
+}
+
 const forgotPasswordTokenSchema: ParamSchema = {
   trim: true,
   custom: {
@@ -127,6 +156,21 @@ const forgotPasswordTokenSchema: ParamSchema = {
   }
 }
 
+const imageSchema: ParamSchema = {
+  optional: true,
+  isString: {
+    errorMessage: UsersMessages.IMAGE_URL_MUST_BE_STRING
+  },
+  trim: true,
+  isLength: {
+    options: {
+      min: 1,
+      max: 500
+    },
+    errorMessage: UsersMessages.IMAGE_URL_LENGTH_INVALID
+  }
+}
+
 export const loginValidator = validate(
   checkSchema({
     email: {
@@ -176,22 +220,7 @@ export const loginValidator = validate(
 
 export const registerValidator = validate(
   checkSchema({
-    name: {
-      notEmpty: {
-        errorMessage: UsersMessages.NAME_IS_REQUIRED
-      },
-      isString: {
-        errorMessage: UsersMessages.NAME_MUST_BE_STRING
-      },
-      trim: true,
-      isLength: {
-        options: {
-          min: 1,
-          max: 100
-        },
-        errorMessage: UsersMessages.NAME_LENGTH_INVALID
-      }
-    },
+    name: nameSchema,
     email: {
       notEmpty: {
         errorMessage: UsersMessages.EMAIL_IS_REQUIRED
@@ -212,16 +241,7 @@ export const registerValidator = validate(
     },
     password: passwordSchema,
     confirm_password: confirmPasswordSchema,
-    date_of_birth: {
-      notEmpty: true,
-      isISO8601: {
-        options: {
-          strict: true,
-          strictSeparator: true
-        }
-      },
-      errorMessage: UsersMessages.DATE_OF_BIRTH_INVALID
-    }
+    date_of_birth: dateOfBirthSchema
   })
 )
 
@@ -390,4 +410,96 @@ export const resetPasswordValidator = validate(
     password: passwordSchema,
     confirm_password: confirmPasswordSchema
   })
+)
+
+// Middleware to check if the user is verified
+export const verifiedUserValidator = (req: Request, res: Response, next: NextFunction) => {
+  const { verify } = req.decoded_authorization as TokenPayload
+  if (verify !== UserVerifyStatus.Verified) {
+    // dùng next(error) hoặc throw error đều được
+    return next(
+      new ErrorWithStatus({
+        message: UsersMessages.USER_NOT_VERIFIED,
+        status: HttpStatus.FORBIDDEN
+      })
+    )
+  }
+
+  // User is verified, continue to the next middleware/controller
+  next()
+}
+
+export const updatedMeValidator = validate(
+  checkSchema(
+    {
+      name: {
+        ...nameSchema,
+        optional: true,
+        notEmpty: undefined
+      },
+      date_of_birth: {
+        ...dateOfBirthSchema,
+        optional: true
+      },
+      bio: {
+        optional: true,
+        isString: {
+          errorMessage: UsersMessages.BIO_MUST_BE_STRING
+        },
+        trim: true, // trim phải đặt dưới optional thì mới check được
+        isLength: {
+          options: {
+            min: 1,
+            max: 200
+          },
+          errorMessage: UsersMessages.BIO_LENGTH_INVALID
+        }
+      },
+      location: {
+        optional: true,
+        isString: {
+          errorMessage: UsersMessages.LOCATION_MUST_BE_STRING
+        },
+        trim: true,
+        isLength: {
+          options: {
+            min: 1,
+            max: 100
+          },
+          errorMessage: UsersMessages.LOCATION_LENGTH_INVALID
+        }
+      },
+      website: {
+        optional: true,
+        isString: {
+          errorMessage: UsersMessages.WEBSITE_MUST_BE_STRING
+        },
+        trim: true,
+        isLength: {
+          options: {
+            min: 1,
+            max: 200
+          },
+          errorMessage: UsersMessages.WEBSITE_LENGTH_INVALID
+        }
+      },
+      username: {
+        optional: true,
+        isString: {
+          errorMessage: UsersMessages.USERNAME_MUST_BE_STRING
+        },
+        trim: true,
+        isLength: {
+          options: {
+            min: 1,
+            max: 50
+          },
+          errorMessage: UsersMessages.USERNAME_LENGTH_INVALID
+        }
+      },
+      avatar: imageSchema,
+      cover_photo: imageSchema
+    },
+    ['body']
+  )
 )

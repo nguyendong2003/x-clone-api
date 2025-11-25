@@ -18,7 +18,7 @@ interface UserType {
   website?: string
   username?: string
   avatar?: string
-  conver_photo?: string
+  cover_photo?: string
 }
 
 export default class User {
@@ -38,7 +38,7 @@ export default class User {
   website: string // optional
   username: string // optional
   avatar: string // optional
-  conver_photo: string // optional
+  cover_photo: string // optional
 
   constructor(user: UserType) {
     const date = new Date()
@@ -58,6 +58,6 @@ export default class User {
     this.website = user.website || ''
     this.username = user.username || ''
     this.avatar = user.avatar || ''
-    this.conver_photo = user.conver_photo || ''
+    this.cover_photo = user.cover_photo || ''
   }
 }

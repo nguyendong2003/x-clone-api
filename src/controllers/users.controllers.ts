@@ -7,20 +7,21 @@ import {
   RegisterReqBody,
   ResetPasswordReqBody,
   TokenPayload,
+  UpdateMeReqBody,
   VerifyEmailReqBody,
   VerifyForgotPasswordReqBody
 } from '~/models/requests/User.requests'
 import { ObjectId } from 'mongodb'
 import User from '~/models/schemas/User.schemas'
 import { UsersMessages } from '~/constants/messages'
-import databaseService from '~/services/database.services'
 import { HttpStatus } from '~/constants/httpStatus'
 import { UserVerifyStatus } from '~/constants/enums'
+import { pick } from 'lodash'
 
 export const loginController = async (req: Request<Record<string, unknown>, unknown, LoginReqBody>, res: Response) => {
   const user = req.user as User
   const user_id = user._id as ObjectId
-  const result = await usersService.login(user_id.toString())
+  const result = await usersService.login({ user_id: String(user_id), verify: user.verify })
 
   return res.json({ message: UsersMessages.LOGIN_SUCCESS, result })
 }
@@ -89,8 +90,8 @@ export const forgotPasswordController = async (
   req: Request<Record<string, unknown>, unknown, ForgotPasswordReqBody>,
   res: Response
 ) => {
-  const { _id } = req.user as User
-  await usersService.forgotPassword(String(_id))
+  const { _id, verify } = req.user as User
+  await usersService.forgotPassword({ user_id: String(_id), verify })
   return res.json({ message: UsersMessages.EMAIL_FORGOT_PASSWORD_SUBMIT_SUCCESS })
 }
 
@@ -121,4 +122,20 @@ export const getMeController = async (req: Request, res: Response, next: NextFun
   }
 
   return res.json({ message: UsersMessages.GET_ME_SUCCESS, result: user })
+}
+
+export const updateMeController = async (
+  req: Request<Record<string, unknown>, unknown, UpdateMeReqBody>,
+  res: Response
+) => {
+  const { user_id } = req.decoded_authorization as TokenPayload
+
+  const payload = req.body
+  const updatedUser = await usersService.updateMe(user_id, payload)
+
+  if (!updatedUser) {
+    return res.status(HttpStatus.NOT_FOUND).json({ message: UsersMessages.USER_NOT_FOUND })
+  }
+
+  return res.json({ message: UsersMessages.UPDATE_ME_SUCCESS, result: updatedUser })
 }

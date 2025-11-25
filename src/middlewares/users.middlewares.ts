@@ -14,6 +14,7 @@ import { config } from 'dotenv'
 import { ObjectId } from 'mongodb'
 import { TokenPayload } from '~/models/requests/User.requests'
 import { UserVerifyStatus } from '~/constants/enums'
+import { REGEX_USERNAME } from '~/constants/regex'
 
 config()
 
@@ -512,12 +513,20 @@ export const updatedMeValidator = validate(
           errorMessage: UsersMessages.USERNAME_MUST_BE_STRING
         },
         trim: true,
-        isLength: {
-          options: {
-            min: 1,
-            max: 50
-          },
-          errorMessage: UsersMessages.USERNAME_LENGTH_INVALID
+        custom: {
+          options: async (value: string, { req }) => {
+            if (!REGEX_USERNAME.test(value)) {
+              throw new Error(UsersMessages.USERNAME_INVALID)
+            }
+
+            const user = await databaseService.users.findOne({ username: value })
+            // Nếu username đã tồn tại rồi
+            if (user) {
+              throw new Error(UsersMessages.USERNAME_ALREADY_TAKEN)
+            }
+
+            return true
+          }
         }
       },
       avatar: imageSchema,
@@ -542,5 +551,41 @@ export const unfollowValidator = validate(
       followed_user_id: userIdSchema
     },
     ['params']
+  )
+)
+
+export const changePasswordValidator = validate(
+  checkSchema(
+    {
+      old_password: {
+        ...passwordSchema,
+        custom: {
+          options: async (value: string, { req }) => {
+            const { user_id } = (req as Request).decoded_authorization as TokenPayload
+            const user = await databaseService.users.findOne({ _id: new ObjectId(user_id) })
+
+            if (!user) {
+              throw new ErrorWithStatus({
+                message: UsersMessages.USER_NOT_FOUND,
+                status: HttpStatus.NOT_FOUND
+              })
+            }
+
+            const { password } = user
+            if (hashPassword(value) !== password) {
+              throw new ErrorWithStatus({
+                message: UsersMessages.OLD_PASSWORD_INCORRECT,
+                status: HttpStatus.BAD_REQUEST
+              })
+            }
+
+            return true
+          }
+        }
+      },
+      password: passwordSchema,
+      confirm_password: confirmPasswordSchema
+    },
+    ['body']
   )
 )

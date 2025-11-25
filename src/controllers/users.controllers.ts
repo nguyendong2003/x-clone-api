@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express'
 import usersService from '~/services/users.services'
 import {
+  ChangePasswordReqBody,
   FollowReqBody,
   ForgotPasswordReqBody,
   GetProfileReqParams,
@@ -165,4 +166,19 @@ export const unfollowController = async (req: Request<UnfollowReqParams>, res: R
   }
 
   return res.json({ message: UsersMessages.UNFOLLOW_SUCCESS })
+}
+
+export const changePasswordController = async (
+  req: Request<ParamsDictionary, unknown, ChangePasswordReqBody>,
+  res: Response
+) => {
+  const { user_id } = req.decoded_authorization as TokenPayload
+  const { password } = req.body
+  const result = await usersService.changePassword(user_id, password)
+
+  if (!result.acknowledged || !result.modifiedCount) {
+    return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: UsersMessages.CHANGE_PASSWORD_FAILED })
+  }
+
+  return res.json({ message: UsersMessages.CHANGE_PASSWORD_SUCCESS })
 }

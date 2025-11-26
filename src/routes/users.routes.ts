@@ -13,7 +13,8 @@ import {
   getProfileController,
   followController,
   unfollowController,
-  changePasswordController
+  changePasswordController,
+  oauthGoogleController
 } from '~/controllers/users.controllers'
 import { filterMiddleware } from '~/middlewares/common.middlewares'
 import {
@@ -43,6 +44,14 @@ const usersRouter = Router()
  * Body: { email: string, password: string }
  */
 usersRouter.post('/login', loginValidator, wrapRequestHandler(loginController))
+
+/**
+ * Description: Route for user login with Google OAuth
+ * Path: /oauth/google
+ * Method: GET
+ * Query: { code: string }
+ */
+usersRouter.get('/oauth/google', wrapRequestHandler(oauthGoogleController))
 
 /**
  * Description: Route for user registration

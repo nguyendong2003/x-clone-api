@@ -21,6 +21,9 @@ import { UsersMessages } from '~/constants/messages'
 import { HttpStatus } from '~/constants/httpStatus'
 import { UserVerifyStatus } from '~/constants/enums'
 import { ParamsDictionary } from 'express-serve-static-core'
+import { config } from 'dotenv'
+
+config()
 
 export const loginController = async (req: Request<ParamsDictionary, unknown, LoginReqBody>, res: Response) => {
   const user = req.user as User
@@ -28,6 +31,13 @@ export const loginController = async (req: Request<ParamsDictionary, unknown, Lo
   const result = await usersService.login({ user_id: String(user_id), verify: user.verify })
 
   return res.json({ message: UsersMessages.LOGIN_SUCCESS, result })
+}
+
+export const oauthGoogleController = async (req: Request, res: Response) => {
+  const { code } = req.query
+  const result = await usersService.oauthGoogle(String(code))
+  const urlRedirect = `${process.env.CLIENT_REDIRECT_CALLBACK_URL}?access_token=${result.access_token}&refresh_token=${result.refresh_token}&new_user=${result.newUser}&verify=${result.verify}`
+  return res.redirect(urlRedirect)
 }
 
 export const registerController = async (req: Request<ParamsDictionary, unknown, RegisterReqBody>, res: Response) => {

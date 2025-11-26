@@ -1,15 +1,21 @@
 import express from 'express'
 import usersRouter from '~/routes/users.routes'
 import databaseService from '~/services/database.services'
-import { defaultErrorHandler } from './middlewares/error.middlewares'
+import { defaultErrorHandler } from '~/middlewares/error.middlewares'
+import mediasRouter from '~/routes/medias.routes'
+import { initFolderIfNotExists } from './utils/file'
 
 databaseService.connect()
 
 const app = express()
 const port = 4000
 
+// Init folder uploads
+initFolderIfNotExists()
+
 app.use(express.json()) // Middleware to parse JSON bodies
 app.use('/users', usersRouter)
+app.use('/medias', mediasRouter)
 app.use(defaultErrorHandler)
 
 app.listen(port, () => {

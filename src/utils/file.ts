@@ -1,10 +1,10 @@
 import { Request } from 'express'
 import formidable, { File } from 'formidable'
 import fs from 'fs'
-import path from 'path'
+import { UPLOAD_TEMP_DIR } from '~/constants/dir'
 
 export const initFolderIfNotExists = () => {
-  const uploadFolderPath = path.resolve('uploads')
+  const uploadFolderPath = UPLOAD_TEMP_DIR
   if (!fs.existsSync(uploadFolderPath)) {
     fs.mkdirSync(uploadFolderPath, {
       recursive: true // Create parent folders if they do not exist
@@ -17,7 +17,7 @@ export const handleUploadSingleImage = (req: Request) => {
   let isInvalidFileDetected = false
 
   const form = formidable({
-    uploadDir: path.resolve('uploads'),
+    uploadDir: UPLOAD_TEMP_DIR,
     maxFiles: 1,
     keepExtensions: true,
     maxFileSize: 1 * 1024 * 1024, // 1 MB

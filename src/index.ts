@@ -3,9 +3,10 @@ import usersRouter from '~/routes/users.routes'
 import databaseService from '~/services/database.services'
 import { defaultErrorHandler } from '~/middlewares/error.middlewares'
 import mediasRouter from '~/routes/medias.routes'
-import { initFolderIfNotExists } from './utils/file'
+import { initFolderIfNotExists } from '~/utils/file'
 import { config } from 'dotenv'
-import { UPLOAD_DIR } from './constants/dir'
+import { UPLOAD_DIR } from '~/constants/dir'
+import staticRouter from '~/routes/static.routes'
 
 config()
 
@@ -20,7 +21,8 @@ initFolderIfNotExists()
 app.use(express.json()) // Middleware to parse JSON bodies
 app.use('/users', usersRouter)
 app.use('/medias', mediasRouter)
-app.use('/static', express.static(UPLOAD_DIR)) // Serve static files from the uploads directory
+app.use('/static', staticRouter) // cách 2: Sử dụng router để phục vụ file tĩnh
+// app.use('/static', express.static(UPLOAD_DIR)) // cách 1: Serve static files from the uploads directory
 
 // Global error handler
 app.use(defaultErrorHandler)

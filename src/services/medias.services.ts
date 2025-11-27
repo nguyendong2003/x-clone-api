@@ -4,15 +4,22 @@ import sharp from 'sharp'
 import { UPLOAD_DIR } from '~/constants/dir'
 import { handleUploadSingleImage } from '~/utils/file'
 import fs from 'fs'
+import { isProduction } from '~/config/config'
+import { config } from 'dotenv'
+
+config()
 
 class MediasService {
   async uploadSingleImage(req: Request) {
     const file = await handleUploadSingleImage(req)
     const newFileName = file.newFilename.split('.')[0]
-    const newFilePath = path.resolve(UPLOAD_DIR, `${newFileName}.jpeg`)
+    const newFilePath = path.resolve(UPLOAD_DIR, `${newFileName}.jpg`)
     await sharp(file.filepath).jpeg().toFile(newFilePath)
     fs.unlinkSync(file.filepath) // Xóa file tạm sau khi đã chuyển đổi và lưu
-    return `http://localhost:4000/uploads/${newFileName}.jpeg`
+
+    return isProduction
+      ? `${process.env.BASE_URL}/medias/${newFileName}.jpg`
+      : `http://localhost:${process.env.PORT || 4000}/medias/${newFileName}.jpg`
   }
 }
 

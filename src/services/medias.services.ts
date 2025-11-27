@@ -18,8 +18,8 @@ class MediasService {
     fs.unlinkSync(file.filepath) // Xóa file tạm sau khi đã chuyển đổi và lưu
 
     return isProduction
-      ? `${process.env.BASE_URL}/medias/${newFileName}.jpg`
-      : `http://localhost:${process.env.PORT || 4000}/medias/${newFileName}.jpg`
+      ? `${process.env.BASE_URL}/static/${newFileName}.jpg`
+      : `http://localhost:${process.env.PORT || 4000}/static/${newFileName}.jpg`
   }
 }
 

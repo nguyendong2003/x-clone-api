@@ -5,8 +5,8 @@ import { HttpStatus } from '~/constants/httpStatus'
 import { UsersMessages } from '~/constants/messages'
 import mediasService from '~/services/medias.services'
 
-export const uploadSingleImageController = async (req: Request, res: Response) => {
-  const imageUrl = await mediasService.uploadSingleImage(req)
+export const uploadImageController = async (req: Request, res: Response) => {
+  const imageUrl = await mediasService.uploadImage(req)
   return res.json({
     message: UsersMessages.UPLOAD_SUCCESS,
     result: imageUrl

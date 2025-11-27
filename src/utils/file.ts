@@ -12,15 +12,16 @@ export const initFolderIfNotExists = () => {
   }
 }
 
-export const handleUploadSingleImage = (req: Request) => {
+export const handleUploadImage = (req: Request) => {
   // Biến cờ để đánh dấu nếu có file không hợp lệ được phát hiện
   let isInvalidFileDetected = false
 
   const form = formidable({
     uploadDir: UPLOAD_TEMP_DIR,
-    maxFiles: 1,
+    maxFiles: 4,
     keepExtensions: true,
-    maxFileSize: 1 * 1024 * 1024, // 1 MB
+    maxFileSize: 500 * 1024, // 500 KB,
+    maxTotalFileSize: 500 * 1024 * 4, // 4 files, each max 500 KB
 
     // Loại bỏ form.emit() và đảm bảo luôn trả về boolean
     filter: ({ name, originalFilename, mimetype }) => {
@@ -36,7 +37,7 @@ export const handleUploadSingleImage = (req: Request) => {
     }
   })
 
-  return new Promise<File>((resolve, reject) => {
+  return new Promise<File[]>((resolve, reject) => {
     form.parse(req, (err, fields, files) => {
       if (err) {
         // Xử lý lỗi hệ thống (maxFiles, maxFieldsSize, IO errors...)
@@ -48,15 +49,13 @@ export const handleUploadSingleImage = (req: Request) => {
       }
 
       // Tối ưu hóa: Kiểm tra xem tệp 'image' có tồn tại không
-      const imageFile = files.image
+      const imageFiles = files.image
 
-      if (!imageFile || imageFile.length === 0) {
+      if (!imageFiles || imageFiles.length === 0) {
         return reject(new Error('No image file uploaded or file field name is incorrect.'))
       }
 
-      const uploadedFile = imageFile[0]
-
-      resolve(uploadedFile)
+      resolve(imageFiles)
     })
   })
 }

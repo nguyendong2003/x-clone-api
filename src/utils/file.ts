@@ -76,7 +76,7 @@ export const handleUploadVideo = (req: Request) => {
     // Loại bỏ form.emit() và đảm bảo luôn trả về boolean
     filter: ({ name, originalFilename, mimetype }) => {
       // Kiểm tra: name là 'video' và mimetype là 'video/*'
-      const isValid = name === 'video' && Boolean(mimetype?.startsWith('video/'))
+      const isValid = name === 'video' && Boolean(mimetype?.includes('mp4') || mimetype?.includes('quicktime'))
 
       if (!isValid) {
         isInvalidFileDetected = true

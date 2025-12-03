@@ -36,7 +36,10 @@ class UsersService {
     })
   }
 
-  private signRefreshToken({ user_id, verify }: SignTokenPayload) {
+  private signRefreshToken(
+    { user_id, verify }: SignTokenPayload,
+    resfresh_token_expires_in = process.env.REFRESH_TOKEN_EXPIRES_IN as StringValue
+  ) {
     return signToken({
       payload: {
         user_id,
@@ -45,7 +48,7 @@ class UsersService {
       },
       privateKey: process.env.JWT_SECRET_REFRESH_TOKEN as string,
       options: {
-        expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN as StringValue
+        expiresIn: resfresh_token_expires_in
       }
     })
   }
@@ -259,6 +262,33 @@ class UsersService {
   async logout(refresh_token: string) {
     const result = await databaseService.refreshTokens.deleteOne({ token: refresh_token })
     return result
+  }
+
+  async refreshToken({
+    user_id,
+    verify,
+    refresh_token,
+    exp
+  }: {
+    user_id: string
+    verify: UserVerifyStatus
+    refresh_token: string
+    exp: number
+  }) {
+    const [new_access_token, new_refresh_token] = await Promise.all([
+      this.signAccessToken({ user_id, verify }),
+      this.signRefreshToken({ user_id, verify }, `${exp - Math.floor(Date.now() / 1000)}s`),
+      databaseService.refreshTokens.deleteOne({ token: refresh_token })
+    ])
+
+    await databaseService.refreshTokens.insertOne(
+      new RefreshToken({ user_id: new ObjectId(user_id), token: new_refresh_token })
+    )
+
+    return {
+      access_token: new_access_token,
+      refresh_token: new_refresh_token
+    }
   }
 
   async verifyEmail(user_id: string) {

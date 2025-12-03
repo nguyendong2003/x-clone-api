@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { ref } from 'process'
 import {
   loginController,
   logoutController,
@@ -14,7 +15,8 @@ import {
   followController,
   unfollowController,
   changePasswordController,
-  oauthGoogleController
+  oauthGoogleController,
+  refreshTokenController
 } from '~/controllers/users.controllers'
 import { filterMiddleware } from '~/middlewares/common.middlewares'
 import {
@@ -69,6 +71,15 @@ usersRouter.post('/register', registerValidator, wrapRequestHandler(registerCont
  * Body: { refresh_token: string }
  */
 usersRouter.post('/logout', accessTokenValidator, refreshTokenValidator, wrapRequestHandler(logoutController))
+
+/**
+ * Description: Route for refresh token
+ * Path: /refresh-token
+ * Method: POST
+ * Header: { Authorization: Bearer <access_token> }
+ * Body: { refresh_token: string }
+ */
+usersRouter.post('/refresh-token', refreshTokenValidator, wrapRequestHandler(refreshTokenController))
 
 /**
  * Description: Route for email verification when user clicks on the verification link in the email

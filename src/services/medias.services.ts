@@ -1,8 +1,8 @@
 import { Request } from 'express'
 import path from 'path'
 import sharp from 'sharp'
-import { UPLOAD_DIR } from '~/constants/dir'
-import { handleUploadImage } from '~/utils/file'
+import { UPLOAD_IMAGE_DIR } from '~/constants/dir'
+import { handleUploadImage, handleUploadVideo } from '~/utils/file'
 import fs from 'fs'
 import { isProduction } from '~/config/config'
 import { config } from 'dotenv'
@@ -17,7 +17,7 @@ class MediasService {
     const result: Media[] = await Promise.all(
       files.map(async (file) => {
         const newFileName = file.newFilename.split('.')[0]
-        const newFilePath = path.resolve(UPLOAD_DIR, `${newFileName}.jpg`)
+        const newFilePath = path.resolve(UPLOAD_IMAGE_DIR, `${newFileName}.jpg`)
         await sharp(file.filepath).jpeg().toFile(newFilePath)
         fs.unlinkSync(file.filepath) // Xóa file tạm sau khi đã chuyển đổi và lưu
 
@@ -29,6 +29,21 @@ class MediasService {
         }
       })
     )
+
+    return result
+  }
+
+  async uploadVideo(req: Request) {
+    const files = await handleUploadVideo(req)
+    const result: Media[] = files.map((file) => {
+      const newFileName = file.newFilename
+      return {
+        url: isProduction
+          ? `${process.env.BASE_URL}/static/video/${newFileName}`
+          : `http://localhost:${process.env.PORT}/static/video/${newFileName}`,
+        type: MediaType.Video
+      }
+    })
 
     return result
   }

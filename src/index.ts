@@ -5,8 +5,8 @@ import { defaultErrorHandler } from '~/middlewares/error.middlewares'
 import mediasRouter from '~/routes/medias.routes'
 import { initFolderIfNotExists } from '~/utils/file'
 import { config } from 'dotenv'
-import { UPLOAD_DIR } from '~/constants/dir'
 import staticRouter from '~/routes/static.routes'
+import { UPLOAD_VIDEO_DIR } from './constants/dir'
 
 config()
 
@@ -22,7 +22,8 @@ app.use(express.json()) // Middleware to parse JSON bodies
 app.use('/users', usersRouter)
 app.use('/medias', mediasRouter)
 app.use('/static', staticRouter) // cách 2: Sử dụng router để phục vụ file tĩnh
-// app.use('/static', express.static(UPLOAD_DIR)) // cách 1: Serve static files from the uploads directory
+app.use('/static/video', express.static(UPLOAD_VIDEO_DIR))
+// app.use('/static', express.static(UPLOAD_IMAGE_DIR)) // cách 1: Serve static files from the uploads directory
 
 // Global error handler
 app.use(defaultErrorHandler)

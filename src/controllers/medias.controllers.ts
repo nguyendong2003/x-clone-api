@@ -122,3 +122,12 @@ export const serveSegmentTestController = async (req: Request, res: Response) =>
     }
   })
 }
+
+export const encodeVideoStatusController = async (req: Request, res: Response) => {
+  const { id } = req.params
+  const result = await mediasService.getVideoEncodeStatus(id)
+  return res.json({
+    message: UsersMessages.GET_ENCODE_VIDEO_STATUS_SUCCESS,
+    result: result
+  })
+}

@@ -66,5 +66,6 @@ export const UsersMessages = {
   IMAGE_NOT_FOUND: 'Image not found',
   VIDEO_NOT_FOUND: 'Video not found',
   VIDEO_RANGE_HEADER_REQUIRED: 'Video range header is required',
-  VIDEO_HLS_NOT_FOUND: 'Video HLS not found'
+  VIDEO_HLS_NOT_FOUND: 'Video HLS not found',
+  GET_ENCODE_VIDEO_STATUS_SUCCESS: 'Get encode video status success'
 } as const

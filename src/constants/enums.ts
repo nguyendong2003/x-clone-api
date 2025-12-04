@@ -23,3 +23,15 @@ export enum VideoEncodeStatus {
   Success, // Đã encoding thành công
   Failed // Quá trình encoding thất bại
 }
+
+export enum TweetType {
+  Tweet, // tự đăng bài
+  Retweet, // Reweet giống như là chia sẻ giống bên Facebook (chỉ chia sẻ, không thêm comment vào)
+  Comment, // bình luận
+  QuoteTweet // QuoteTweet giống như là chia sẻ bên Facebook (nhưng có thêm comment vào)
+}
+
+export enum TweetAudience {
+  EveryOne, // 0
+  TwitterCircle // 1
+}

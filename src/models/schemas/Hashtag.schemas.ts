@@ -7,7 +7,7 @@ interface HashtagType {
 }
 
 export default class Hashtag {
-  _id?: ObjectId
+  _id: ObjectId
   name: string
   created_at: Date
 

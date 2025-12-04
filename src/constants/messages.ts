@@ -83,6 +83,5 @@ export const TweetsMessages = {
   TWEET_MENTIONS_MUST_BE_ARRAY_OF_USER_ID: 'Tweet mentions must be an array of user ID',
   TWEET_MEDIAS_MUST_BE_ARRAY: 'Tweet medias must be an array',
   TWEET_MEDIAS_MUST_BE_ARRAY_OF_MEDIA_OBJECT: 'Tweet medias must be an array of media object',
-  TWEET_NOT_FOUND: 'Tweet not found',
-  CREATE_TWEET_SUCCESS: 'Create tweet success'
+  TWEET_CREATE_SUCCESS: 'Tweet create success'
 } as const

@@ -3,6 +3,7 @@ import formidable, { File } from 'formidable'
 import fs from 'fs'
 import path from 'path'
 import { UPLOAD_IMAGE_TEMP_DIR, UPLOAD_VIDEO_DIR } from '~/constants/dir'
+import { nanoid } from 'nanoid'
 
 export const initFolderIfNotExists = () => {
   const dirs = [UPLOAD_IMAGE_TEMP_DIR, UPLOAD_VIDEO_DIR]
@@ -130,7 +131,73 @@ export const handleUploadVideo = (req: Request) => {
     })
   })
 }
-/* --- IGNORE: Code version cũ ---
+/*
+  - Cách đặt tên:
+    + Cách 1: Tạo unique id cho video ngay từ đầu  -> chọn cách này
+    + Cách 2: Đợi video upload xong rồi tạo folder, move file vào folder đó
+
+  - Cách xử lý khi upload video và encode HLS (có 2 giai đoạn)  => flow này giống upload video lên youtube:
+    + Giai đoạn 1: Upload video thành công thì resolve về cho người dùng
+    + Giai đoạn 2: Khai báo thêm 1 url endpoint để check xem video đó đã encode xong chưa
+*/
+export const handleUploadVideoHLS = (req: Request) => {
+  // Biến cờ để đánh dấu nếu có file không hợp lệ được phát hiện
+  let isInvalidFileDetected = false
+
+  // Tạo thư mục tạm riêng cho mỗi lần upload
+  const idName = nanoid()
+  const folderPath = path.resolve(UPLOAD_VIDEO_DIR, idName)
+  if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath)
+
+  const form = formidable({
+    uploadDir: folderPath,
+    maxFiles: 1,
+    keepExtensions: true,
+    maxFileSize: 100 * 1024 * 1024, // 100 MB
+
+    // Loại bỏ form.emit() và đảm bảo luôn trả về boolean
+    filter: ({ name, originalFilename, mimetype }) => {
+      // Kiểm tra: name là 'video' và mimetype là 'video/*'
+      const isValid = name === 'video' && Boolean(mimetype?.includes('mp4') || mimetype?.includes('quicktime'))
+
+      if (!isValid) {
+        isInvalidFileDetected = true
+      }
+
+      // Trả về kết quả kiểm tra
+      return isValid
+    },
+    filename: (name, ext, part, form) => {
+      // Đặt tên file theo định dạng [idName].[extension] (ví dụ: a5wvcqxeqiptzib2xaxfh2lam.mp4)
+      return `${idName}${ext}`
+    }
+  })
+
+  return new Promise<File[]>((resolve, reject) => {
+    form.parse(req, (err, fields, files) => {
+      if (err) {
+        // Trả về lỗi maxFilesExceeded
+        return reject(err)
+      }
+
+      if (isInvalidFileDetected) {
+        return reject(new Error('Invalid file type. Only video file is allowed.'))
+      }
+
+      // Tối ưu hóa: Kiểm tra xem tệp 'video' có tồn tại không
+      const videoFiles = files.video
+      if (!videoFiles || videoFiles.length === 0) {
+        return reject(new Error('No video file uploaded or file field name is incorrect.'))
+      }
+
+      const uploadedFiles: File[] = videoFiles
+
+      resolve(uploadedFiles)
+    })
+  })
+}
+
+/* --- IGNORE: Code version cũ v0 ---
 export const handleUploadSingleImage = async (req: Request) => {
   const form = formidable({
     uploadDir: path.resolve('uploads'), // Directory to save uploaded files

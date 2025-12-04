@@ -23,6 +23,14 @@ export const uploadVideoController = async (req: Request, res: Response) => {
   })
 }
 
+export const uploadVideoHLSController = async (req: Request, res: Response) => {
+  const videoUrl = await mediasService.uploadVideoHLS(req)
+  return res.json({
+    message: UsersMessages.UPLOAD_SUCCESS,
+    result: videoUrl
+  })
+}
+
 export const serveImageController = async (req: Request, res: Response) => {
   const { imageName } = req.params
   return res.sendFile(path.resolve(UPLOAD_IMAGE_DIR, imageName), (err) => {
@@ -73,4 +81,44 @@ export const serveVideoStreamController = async (req: Request, res: Response) =>
 
   const videoStream = fs.createReadStream(videoPath, { start, end })
   videoStream.pipe(res)
+}
+
+export const serveM3u8Controller = async (req: Request, res: Response) => {
+  const { id } = req.params
+  const videoHLSPath = path.resolve(UPLOAD_VIDEO_DIR, id, 'master.m3u8')
+  return res.sendFile(videoHLSPath, (err) => {
+    if (err) {
+      res.status(HttpStatus.NOT_FOUND).json({
+        message: UsersMessages.VIDEO_HLS_NOT_FOUND
+      })
+    }
+  })
+}
+
+export const serveSegmentController = async (req: Request, res: Response) => {
+  const { id, v, segment } = req.params
+
+  // segment example: segment0.ts, segment1.ts, ...
+  const videoHLSPath = path.resolve(UPLOAD_VIDEO_DIR, id, v, segment)
+  return res.sendFile(videoHLSPath, (err) => {
+    if (err) {
+      res.status(HttpStatus.NOT_FOUND).json({
+        message: UsersMessages.VIDEO_HLS_NOT_FOUND
+      })
+    }
+  })
+}
+
+export const serveSegmentTestController = async (req: Request, res: Response) => {
+  const { id, segment } = req.params
+
+  // segment example: segment0.ts, segment1.ts, ...
+  const videoHLSPath = path.resolve(UPLOAD_VIDEO_DIR, id, segment)
+  return res.sendFile(videoHLSPath, (err) => {
+    if (err) {
+      res.status(HttpStatus.NOT_FOUND).json({
+        message: UsersMessages.VIDEO_HLS_NOT_FOUND
+      })
+    }
+  })
 }

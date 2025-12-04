@@ -19,6 +19,7 @@ config()
 type SignTokenPayload = {
   user_id: string
   verify: UserVerifyStatus
+  exp?: number
 }
 
 class UsersService {
@@ -36,10 +37,19 @@ class UsersService {
     })
   }
 
-  private signRefreshToken(
-    { user_id, verify }: SignTokenPayload,
-    resfresh_token_expires_in = process.env.REFRESH_TOKEN_EXPIRES_IN as StringValue
-  ) {
+  private signRefreshToken({ user_id, verify, exp }: SignTokenPayload) {
+    if (exp) {
+      return signToken({
+        payload: {
+          user_id,
+          token_type: TokenType.RefreshToken,
+          verify,
+          exp
+        },
+        privateKey: process.env.JWT_SECRET_REFRESH_TOKEN as string
+      })
+    }
+
     return signToken({
       payload: {
         user_id,
@@ -48,7 +58,7 @@ class UsersService {
       },
       privateKey: process.env.JWT_SECRET_REFRESH_TOKEN as string,
       options: {
-        expiresIn: resfresh_token_expires_in
+        expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN as StringValue
       }
     })
   }
@@ -277,7 +287,7 @@ class UsersService {
   }) {
     const [new_access_token, new_refresh_token] = await Promise.all([
       this.signAccessToken({ user_id, verify }),
-      this.signRefreshToken({ user_id, verify }, `${exp - Math.floor(Date.now() / 1000)}s`),
+      this.signRefreshToken({ user_id, verify, exp }),
       databaseService.refreshTokens.deleteOne({ token: refresh_token })
     ])
 

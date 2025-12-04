@@ -11,7 +11,10 @@ import cors from 'cors'
 
 config()
 
-databaseService.connect()
+// Kết nối đến database khi khởi động server và tạo index cho collection users
+databaseService.connect().then(() => {
+  databaseService.indexUsers()
+})
 
 const app = express()
 app.use(cors())

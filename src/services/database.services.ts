@@ -28,22 +28,35 @@ class DatabaseService {
     }
   }
 
-  indexUsers() {
+  async indexUsers() {
+    // Kiểm tra nếu index chưa tồn tại thì tạo mới để tránh khi restart server lại đánh index => lỗi không đáng có
+    const exists = await this.users.indexExists(['email_1_password_1', 'username_1', 'email_1'])
+    if (exists) return
+
     this.users.createIndex({ email: 1, password: 1 })
     this.users.createIndex({ email: 1 }, { unique: true })
     this.users.createIndex({ username: 1 }, { unique: true })
   }
 
-  indexRefreshTokens() {
+  async indexRefreshTokens() {
+    const exists = await this.refreshTokens.indexExists(['token_1', 'exp_1'])
+    if (exists) return
+
     this.refreshTokens.createIndex({ token: 1 }) // Tạo index cho trường token
     this.refreshTokens.createIndex({ exp: 1 }, { expireAfterSeconds: 0 }) // Tạo TTL index cho trường exp (sau 0 giây kể từ thời điểm trong trường exp, tài liệu sẽ tự động bị xóa)
   }
 
-  indexVideoStatus() {
+  async indexVideoStatus() {
+    const exists = await this.videoStatus.indexExists(['name_1'])
+    if (exists) return
+
     this.videoStatus.createIndex({ name: 1 })
   }
 
-  indexFollowers() {
+  async indexFollowers() {
+    const exists = await this.followers.indexExists(['userId_1_followed_user_id_1'])
+    if (exists) return
+
     this.followers.createIndex({ userId: 1, followed_user_id: 1 }, { unique: true })
   }
 

@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { bookmarkController, unbookmarkController } from '~/controllers/bookmarks.controller'
+import { tweetIdValidator } from '~/middlewares/tweets.middleswares'
 import { accessTokenValidator, verifiedUserValidator } from '~/middlewares/users.middlewares'
 import { wrapRequestHandler } from '~/utils/handlers'
 
@@ -12,14 +13,19 @@ const bookmarksRouter = Router()
  * Header: { Authorization: Bearer <access_token> }
  * Body: {tweet_id: string}
  */
-bookmarksRouter.post('/', accessTokenValidator, verifiedUserValidator, wrapRequestHandler(bookmarkController))
+bookmarksRouter.post(
+  '/',
+  accessTokenValidator,
+  verifiedUserValidator,
+  tweetIdValidator,
+  wrapRequestHandler(bookmarkController)
+)
 
 /**
  * Description: Unbookmark a tweet
  * Path: /tweets/:tweet_id
  * Method: DELETE
  * Header: { Authorization: Bearer <access_token> }
- * Body: {tweet_id: string}
  *
  * Lưu ý: Sử dụng DELETE không gửi body lên mà lấy trong params
  */
@@ -27,6 +33,7 @@ bookmarksRouter.delete(
   '/tweets/:tweet_id',
   accessTokenValidator,
   verifiedUserValidator,
+  tweetIdValidator,
   wrapRequestHandler(unbookmarkController)
 )
 export default bookmarksRouter

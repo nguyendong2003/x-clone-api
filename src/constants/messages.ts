@@ -71,6 +71,7 @@ export const UsersMessages = {
 } as const
 
 export const TweetsMessages = {
+  TWEET_ID_INVALID: 'Tweet ID is invalid',
   TWEET_TYPE_INVALID: 'Tweet type is invalid',
   TWEET_AUDIENCE_INVALID: 'Tweet audience is invalid',
   PARENT_ID_MUST_BE_VALID_TWEET_ID: 'Parent ID must be a valid tweet ID',
@@ -83,7 +84,8 @@ export const TweetsMessages = {
   TWEET_MENTIONS_MUST_BE_ARRAY_OF_USER_ID: 'Tweet mentions must be an array of user ID',
   TWEET_MEDIAS_MUST_BE_ARRAY: 'Tweet medias must be an array',
   TWEET_MEDIAS_MUST_BE_ARRAY_OF_MEDIA_OBJECT: 'Tweet medias must be an array of media object',
-  TWEET_CREATE_SUCCESS: 'Tweet create success'
+  TWEET_CREATE_SUCCESS: 'Tweet create success',
+  TWEET_NOT_FOUND: 'Tweet not found'
 } as const
 
 export const BookmarksMessages = {

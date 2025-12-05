@@ -269,6 +269,49 @@ export const registerValidator = validate(
   })
 )
 
+// Middleware to optionally validate access token. If token is valid, attach decoded to req; if not present or invalid, just continue without error.
+export const optionalAccessTokenValidator = validate(
+  checkSchema(
+    {
+      Authorization: {
+        trim: true,
+        custom: {
+          options: async (value: string, { req }) => {
+            if (!value) {
+              // Không có Authorization header → vẫn cho qua
+              return true
+            }
+
+            // Có header → kiểm tra
+            const access_token = value.split(' ')[1]
+
+            if (!access_token) {
+              // Có header nhưng không đúng Bearer token → vẫn cho qua
+              // Hoặc bạn muốn chặt chẽ thì throw error
+              return true
+            }
+
+            try {
+              const decoded_authorization = await verifyToken({
+                token: access_token,
+                secretOrPublicKey: process.env.JWT_SECRET_ACCESS_TOKEN as string
+              })
+
+              ;(req as Request).decoded_authorization = decoded_authorization
+            } catch (error) {
+              // Token sai → KHÔNG THROW ⇒ cho qua nhưng không gắn decoded
+              return true
+            }
+
+            return true
+          }
+        }
+      }
+    },
+    ['headers']
+  )
+)
+
 export const accessTokenValidator = validate(
   checkSchema(
     {

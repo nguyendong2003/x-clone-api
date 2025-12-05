@@ -1,6 +1,5 @@
 import { Request, Response } from 'express'
 import { ParamsDictionary } from 'express-serve-static-core'
-import { result } from 'lodash'
 import { TweetsMessages } from '~/constants/messages'
 import { TweetReqBody } from '~/models/requests/Tweet.requests'
 import { TokenPayload } from '~/models/requests/User.requests'
@@ -14,8 +13,12 @@ export const createTweetController = async (req: Request<ParamsDictionary, unkno
 }
 
 export const getTweetController = async (req: Request<ParamsDictionary, unknown, TweetReqBody>, res: Response) => {
-  // const { user_id } = req.decoded_authorization as TokenPayload
-  // const result = await tweetsService.createTweet(user_id, req.body)
+  const result = await tweetsService.increaseTweetView(req.params.tweet_id, req.decoded_authorization?.user_id)
+  const tweet = {
+    ...req.tweet,
+    user_views: result?.user_views || 0,
+    guest_views: result?.guest_views || 0
+  }
 
-  return res.json({ message: TweetsMessages.GET_TWEET_SUCCESS, result: req.tweet })
+  return res.json({ message: TweetsMessages.GET_TWEET_SUCCESS, result: tweet })
 }

@@ -11,6 +11,11 @@ import cors from 'cors'
 import tweetsRouter from '~/routes/tweets.routes'
 import bookmarksRouter from './routes/bookmarks.routes'
 
+/**
+ * File này chỉ để fake dữ liệu khi dev, chỉ cần uncomment này lên và chạy server thì sẽ chạy file này tiếp, vì vậy khi chạy xong thì comment dòng này lại
+ */
+// import '~/utils/fake' // Chạy file fake dữ liệu
+
 config()
 
 // Kết nối đến database khi khởi động server và tạo index cho collection users

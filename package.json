@@ -17,6 +17,7 @@
   "description": "",
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@faker-js/faker": "^10.1.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.5",
     "@types/formidable": "^3.4.6",

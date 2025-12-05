@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { createTweetController, getTweetController } from '~/controllers/tweets.controller'
+import { createTweetController, getTweetChildrenController, getTweetController } from '~/controllers/tweets.controller'
 import { audienceValidator, tweetIdValidator, tweetsValidator } from '~/middlewares/tweets.middleswares'
 import {
   accessTokenValidator,
@@ -25,9 +25,10 @@ tweetsRouter.post(
 )
 
 /**
- * Description: Get a tweet
+ * Description: Get a tweet details
  * Path: /:tweet_id
  * Method: GET
+ * Header: { Authorization: Bearer <access_token> } (Optional)
  */
 tweetsRouter.get(
   '/:tweet_id',
@@ -37,6 +38,21 @@ tweetsRouter.get(
   optionalAccessTokenValidator,
   audienceValidator,
   wrapRequestHandler(getTweetController)
+)
+
+/**
+ * Description: Get tweet children with pagination
+ * Path: /:tweet_id/children
+ * Method: GET
+ * Header: { Authorization: Bearer <access_token> } (Optional)
+ * Query: { tweet_type: TweetType, limit : number, page: number}
+ */
+tweetsRouter.get(
+  '/:tweet_id/children',
+  tweetIdValidator,
+  optionalAccessTokenValidator,
+  audienceValidator,
+  wrapRequestHandler(getTweetChildrenController)
 )
 
 export default tweetsRouter

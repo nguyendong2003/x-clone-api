@@ -109,20 +109,6 @@ export const serveSegmentController = async (req: Request, res: Response) => {
   })
 }
 
-export const serveSegmentTestController = async (req: Request, res: Response) => {
-  const { id, segment } = req.params
-
-  // segment example: segment0.ts, segment1.ts, ...
-  const videoHLSPath = path.resolve(UPLOAD_VIDEO_DIR, id, segment)
-  return res.sendFile(videoHLSPath, (err) => {
-    if (err) {
-      res.status(HttpStatus.NOT_FOUND).json({
-        message: UsersMessages.VIDEO_HLS_NOT_FOUND
-      })
-    }
-  })
-}
-
 export const encodeVideoStatusController = async (req: Request, res: Response) => {
   const { id } = req.params
   const result = await mediasService.getVideoEncodeStatus(id)

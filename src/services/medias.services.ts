@@ -14,6 +14,16 @@ import VideoStatus from '~/models/schemas/VideoStatus.schemas'
 
 config()
 
+const getIdNameFromPath = (filePath: string) => {
+  // item example: /home/user/uploads/videos/hwd0umat9dismppijavj88fqx.mp4  => id: hwd0umat9dismppijavj88fqx
+  // const idName = item.split('/').pop()?.split('.')[0] as string
+  // console.log('Enqueue video for encoding, id:', idName)
+
+  // item example: D:\LearnDTD\LearnNodeJS\Twitter\uploads\videos\ZoPqlcOZjdvIW5PjCfyQQ\ZoPqlcOZjdvIW5PjCfyQQ.mp4  => id: ZoPqlcOZjdvIW5PjCfyQQ
+  const idName = filePath.split('\\').pop()?.split('.')[0] as string
+  return idName
+}
+
 /**
  * Queue class to manage video encoding tasks
  */
@@ -31,9 +41,10 @@ class Queue {
 
     // item example: /home/user/uploads/videos/hwd0umat9dismppijavj88fqx.mp4  => id: hwd0umat9dismppijavj88fqx
     // const idName = item.split('/').pop()?.split('.')[0] as string
+    // console.log('Enqueue video for encoding, id:', idName)
 
     // item example: D:\LearnDTD\LearnNodeJS\Twitter\uploads\videos\ZoPqlcOZjdvIW5PjCfyQQ\ZoPqlcOZjdvIW5PjCfyQQ.mp4  => id: ZoPqlcOZjdvIW5PjCfyQQ
-    const idName = item.split('\\').pop()?.split('.')[0] as string
+    const idName = getIdNameFromPath(item)
     await databaseService.videoStatus.insertOne(
       new VideoStatus({
         name: idName,
@@ -48,7 +59,8 @@ class Queue {
     if (this.items.length > 0) {
       this.encoding = true
       const videoPath = this.items[0]
-      const idName = videoPath.split('/').pop()?.split('.')[0] as string
+      // const idName = videoPath.split('/').pop()?.split('.')[0] as string
+      const idName = getIdNameFromPath(videoPath)
       await databaseService.videoStatus.updateOne(
         {
           name: idName
@@ -64,6 +76,8 @@ class Queue {
       )
 
       try {
+        console.log('>>>> video path: ', videoPath)
+
         await encodeHLSWithMultipleVideoStreams(videoPath)
         await fs.promises.unlink(videoPath) // Xóa file gốc sau khi đã chuyển đổi
         await databaseService.videoStatus.updateOne(
@@ -155,11 +169,12 @@ class MediasService {
         // await encodeHLSWithMultipleVideoStreams(file.filepath)
         // await fs.promises.unlink(file.filepath) // Xóa file gốc sau khi đã chuyển đổi
         encodeQueue.enqueue(file.filepath)
-        const newFileName = file.newFilename
+        // const newFileName = file.newFilename
+        const idName = file.newFilename.split('.')[0]
         return {
           url: isProduction
-            ? `${process.env.BASE_URL}/static/video-hls/${newFileName}.m3u8`
-            : `http://localhost:${process.env.PORT}/static/video-hls/${newFileName}.m3u8`,
+            ? `${process.env.BASE_URL}/static/video-hls/${idName}/master.m3u8`
+            : `http://localhost:${process.env.PORT}/static/video-hls/${idName}/master.m3u8`,
           type: MediaType.VideoHLS
         }
       })

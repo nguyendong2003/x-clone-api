@@ -30,7 +30,10 @@ class Queue {
     this.items.push(item)
 
     // item example: /home/user/uploads/videos/hwd0umat9dismppijavj88fqx.mp4  => id: hwd0umat9dismppijavj88fqx
-    const idName = item.split('/').pop()?.split('.')[0] as string
+    // const idName = item.split('/').pop()?.split('.')[0] as string
+
+    // item example: D:\LearnDTD\LearnNodeJS\Twitter\uploads\videos\ZoPqlcOZjdvIW5PjCfyQQ\ZoPqlcOZjdvIW5PjCfyQQ.mp4  => id: ZoPqlcOZjdvIW5PjCfyQQ
+    const idName = item.split('\\').pop()?.split('.')[0] as string
     await databaseService.videoStatus.insertOne(
       new VideoStatus({
         name: idName,

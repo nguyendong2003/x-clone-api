@@ -85,7 +85,9 @@ export const TweetsMessages = {
   TWEET_MEDIAS_MUST_BE_ARRAY: 'Tweet medias must be an array',
   TWEET_MEDIAS_MUST_BE_ARRAY_OF_MEDIA_OBJECT: 'Tweet medias must be an array of media object',
   TWEET_CREATE_SUCCESS: 'Tweet create success',
-  TWEET_NOT_FOUND: 'Tweet not found'
+  TWEET_NOT_FOUND: 'Tweet not found',
+  TWEET_NOT_PUBLIC: 'Tweet is not public',
+  GET_TWEET_SUCCESS: 'Get tweet success'
 } as const
 
 export const BookmarksMessages = {

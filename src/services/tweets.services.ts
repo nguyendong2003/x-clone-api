@@ -2,7 +2,7 @@ import { TweetReqBody } from '~/models/requests/Tweet.requests'
 import databaseService from './database.services'
 import Tweet from '~/models/schemas/Tweet.schemas'
 import Hashtag from '~/models/schemas/Hashtag.schemas'
-import { ObjectId } from 'mongodb'
+import { ObjectId, WithId } from 'mongodb'
 import { TweetType } from '~/constants/enums'
 
 class TweetsService {
@@ -53,21 +53,23 @@ class TweetsService {
           updated_at: true
         }
       },
-      { returnDocument: 'after', projection: { user_views: 1, guest_views: 1 } }
+      { returnDocument: 'after', projection: { user_views: 1, guest_views: 1, updated_at: 1 } }
     )
-    return result
+    return result as WithId<{ user_views: number; guest_views: number; updated_at: Date }>
   }
 
   async getTweetChildren({
     tweet_id,
     tweet_type,
     limit,
-    page
+    page,
+    user_id
   }: {
     tweet_id: string
     tweet_type: TweetType
     limit: number
     page: number
+    user_id?: string
   }) {
     const tweets = await databaseService.tweets
       .aggregate<Tweet>([
@@ -182,9 +184,40 @@ class TweetsService {
       ])
       .toArray()
 
-    const total = await databaseService.tweets.countDocuments({
-      parent_id: new ObjectId(tweet_id),
-      type: tweet_type
+    // Tăng view cho tweet children
+    const inc = user_id ? { user_views: 1 } : { guest_views: 1 }
+    const date = new Date() // dùng date thay vì $currentDate vì nếu dùng $currentDate trong updateMany thì không lấy ra được updated_at sau khi cập nhật
+    const ids = tweets.map((tweet) => tweet._id as ObjectId)
+
+    // total: Lấy tổng số tweet children để phục vụ phân trang
+    const [, total] = await Promise.all([
+      databaseService.tweets.updateMany(
+        {
+          _id: {
+            $in: ids
+          }
+        },
+        {
+          $inc: inc,
+          $set: {
+            updated_at: date
+          }
+        }
+      ),
+      databaseService.tweets.countDocuments({
+        parent_id: new ObjectId(tweet_id),
+        type: tweet_type
+      })
+    ])
+
+    // Cập nhật lại thông tin view, updated_at trong mảng tweets trả về
+    tweets.forEach((tweet) => {
+      tweet.updated_at = date
+      if (user_id) {
+        tweet.user_views += 1
+      } else {
+        tweet.guest_views += 1
+      }
     })
 
     return { tweets, total }

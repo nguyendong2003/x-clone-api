@@ -16,8 +16,9 @@ export const getTweetController = async (req: Request<ParamsDictionary, unknown,
   const result = await tweetsService.increaseTweetView(req.params.tweet_id, req.decoded_authorization?.user_id)
   const tweet = {
     ...req.tweet,
-    user_views: result?.user_views || 0,
-    guest_views: result?.guest_views || 0
+    user_views: result.user_views,
+    guest_views: result.guest_views,
+    updated_at: result.updated_at
   }
 
   return res.json({ message: TweetsMessages.GET_TWEET_SUCCESS, result: tweet })
@@ -29,6 +30,7 @@ export const getTweetChildrenController = async (
 ) => {
   const { tweet_id } = req.params
   const { tweet_type, limit, page } = req.query
+  const { user_id } = req.decoded_authorization || {}
 
   const parsedTweetType = Number(tweet_type)
   const parsedLimit = Number(limit)
@@ -38,7 +40,8 @@ export const getTweetChildrenController = async (
     tweet_id,
     tweet_type: parsedTweetType,
     limit: parsedLimit,
-    page: parsedPage
+    page: parsedPage,
+    user_id
   })
 
   return res.json({

@@ -1,7 +1,6 @@
 import { TweetAudience, TweetType } from '~/constants/enums'
 import { Media } from '~/models/Other'
-import { ParamsDictionary } from 'express-serve-static-core'
-import { ParsedQs } from 'qs'
+import { ParamsDictionary, Query } from 'express-serve-static-core'
 
 export interface TweetReqBody {
   type: TweetType
@@ -17,7 +16,8 @@ export interface TweetChildrenParams extends ParamsDictionary {
   tweet_id: string
 }
 
-export interface TweetChildrenQuery extends ParsedQs {
+// Query parameters are always strings in Express, cannot change to number or enum
+export interface TweetChildrenQuery extends Query {
   tweet_type: string
   limit: string
   page: string

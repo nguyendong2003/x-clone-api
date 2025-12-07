@@ -13,7 +13,6 @@ import axios from 'axios'
 import { ErrorWithStatus } from '~/models/Errors'
 import { UsersMessages } from '~/constants/messages'
 import { HttpStatus } from '~/constants/httpStatus'
-import { nanoid } from 'nanoid'
 
 config()
 
@@ -116,7 +115,7 @@ class UsersService {
         email_verify_token,
         date_of_birth: new Date(payload.date_of_birth), // Convert ISO8601 string to Date object
         password: hashPassword(payload.password),
-        username: `user_${nanoid(20)}` // Tạo username ngẫu nhiên dạng user_xxxxxxxx
+        username: `user${user_id.toString()}` // Tạo username ngẫu nhiên dạng user_xxxxxxxx
       })
     )
 

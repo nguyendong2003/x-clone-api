@@ -17,8 +17,11 @@ export interface TweetChildrenParams extends ParamsDictionary {
 }
 
 // Query parameters are always strings in Express, cannot change to number or enum
-export interface TweetChildrenQuery extends Query {
+export interface TweetChildrenQuery extends PaginationQuery {
   tweet_type: string
+}
+
+export interface PaginationQuery extends Query {
   limit: string
   page: string
 }

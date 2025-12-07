@@ -316,20 +316,28 @@ export const getTweetChildrenValidator = validate(
           options: [tweetTypes],
           errorMessage: TweetsMessages.TWEET_TYPE_INVALID
         }
-      },
+      }
+    },
+    ['query']
+  )
+)
+
+export const paginationValidator = validate(
+  checkSchema(
+    {
       limit: {
         isNumeric: {
-          errorMessage: TweetsMessages.LIMIT_MUST_BE_NUMBER
+          errorMessage: 'Limit must be a number'
         },
         custom: {
           options: (value, { req }) => {
             const limit = Number(value)
             if (limit <= 0) {
-              throw new Error(TweetsMessages.LIMIT_MUST_BE_POSITIVE)
+              throw new Error('Limit must be a positive number')
             }
 
             if (limit > 100) {
-              throw new Error(TweetsMessages.LIMIT_EXCEEDS_MAXIMUM)
+              throw new Error('Limit exceeds maximum value of 100')
             }
 
             return true
@@ -338,13 +346,13 @@ export const getTweetChildrenValidator = validate(
       },
       page: {
         isNumeric: {
-          errorMessage: TweetsMessages.PAGE_MUST_BE_NUMBER
+          errorMessage: 'Page must be a number'
         },
         custom: {
           options: (value, { req }) => {
             const page = Number(value)
             if (page <= 0) {
-              throw new Error(TweetsMessages.PAGE_MUST_BE_POSITIVE)
+              throw new Error('Page must be a positive number')
             }
 
             return true

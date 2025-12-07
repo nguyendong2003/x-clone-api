@@ -1,8 +1,14 @@
 import { Router } from 'express'
-import { createTweetController, getTweetChildrenController, getTweetController } from '~/controllers/tweets.controller'
+import {
+  createTweetController,
+  getNewFeedsController,
+  getTweetChildrenController,
+  getTweetController
+} from '~/controllers/tweets.controller'
 import {
   audienceValidator,
   getTweetChildrenValidator,
+  paginationValidator,
   tweetIdValidator,
   tweetsValidator
 } from '~/middlewares/tweets.middleswares'
@@ -54,11 +60,27 @@ tweetsRouter.get(
  */
 tweetsRouter.get(
   '/:tweet_id/children',
-  getTweetChildrenValidator,
   tweetIdValidator,
+  paginationValidator,
+  getTweetChildrenValidator,
   optionalAccessTokenValidator,
   audienceValidator,
   wrapRequestHandler(getTweetChildrenController)
+)
+
+/**
+ * Description: Get new feeds
+ * Path: /
+ * Method: GET
+ * Header: { Authorization: Bearer <access_token> }
+ * Query: { limit: number, page: number }
+ */
+tweetsRouter.get(
+  '/',
+  paginationValidator,
+  accessTokenValidator,
+  verifiedUserValidator,
+  wrapRequestHandler(getNewFeedsController)
 )
 
 export default tweetsRouter

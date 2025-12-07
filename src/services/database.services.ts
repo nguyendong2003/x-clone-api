@@ -63,6 +63,16 @@ class DatabaseService {
     this.followers.createIndex({ userId: 1, followed_user_id: 1 }, { unique: true })
   }
 
+  async indexTweets() {
+    const exists = await this.tweets.indexExists(['content_text'])
+    if (!exists) {
+      // Tạo text index cho trường content để phục vụ chức năng search tweet
+      // Mặc định ngôn ngữ là "english", để tắt tính năng lọc stop words và stemming, ta đặt về "none"
+      // Nếu để mặc định là "english" thì khi search các stop words như "is", "the", "and"... sẽ không ra kết quả
+      this.tweets.createIndex({ content: 'text' }, { default_language: 'none' })
+    }
+  }
+
   get users(): Collection<User> {
     return this.db.collection(process.env.DB_USERS_COLLECTION as string)
   }

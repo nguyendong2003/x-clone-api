@@ -10,6 +10,7 @@ import { UPLOAD_VIDEO_DIR } from '~/constants/dir'
 import cors from 'cors'
 import tweetsRouter from '~/routes/tweets.routes'
 import bookmarksRouter from './routes/bookmarks.routes'
+import searchRouter from './routes/search.routes'
 
 /**
  * File này chỉ để fake dữ liệu khi dev, chỉ cần uncomment này lên và chạy server thì sẽ chạy file này tiếp, vì vậy khi chạy xong thì comment dòng này lại
@@ -24,6 +25,7 @@ databaseService.connect().then(() => {
   databaseService.indexRefreshTokens()
   databaseService.indexVideoStatus()
   databaseService.indexFollowers()
+  databaseService.indexTweets()
 })
 
 const app = express()
@@ -38,6 +40,7 @@ app.use('/users', usersRouter)
 app.use('/medias', mediasRouter)
 app.use('/tweets', tweetsRouter)
 app.use('/bookmarks', bookmarksRouter)
+app.use('/search', searchRouter)
 app.use('/static', staticRouter) // cách 2: Sử dụng router để phục vụ file tĩnh
 app.use('/static/video', express.static(UPLOAD_VIDEO_DIR))
 // app.use('/static', express.static(UPLOAD_IMAGE_DIR)) // cách 1: Serve static files from the uploads directory

@@ -9,8 +9,9 @@ import staticRouter from '~/routes/static.routes'
 import { UPLOAD_VIDEO_DIR } from '~/constants/dir'
 import cors from 'cors'
 import tweetsRouter from '~/routes/tweets.routes'
-import bookmarksRouter from './routes/bookmarks.routes'
-import searchRouter from './routes/search.routes'
+import bookmarksRouter from '~/routes/bookmarks.routes'
+import searchRouter from '~/routes/search.routes'
+import likesRouter from '~/routes/likes.routes'
 
 /**
  * File này chỉ để fake dữ liệu khi dev, chỉ cần uncomment này lên và chạy server thì sẽ chạy file này tiếp, vì vậy khi chạy xong thì comment dòng này lại
@@ -40,6 +41,7 @@ app.use('/users', usersRouter)
 app.use('/medias', mediasRouter)
 app.use('/tweets', tweetsRouter)
 app.use('/bookmarks', bookmarksRouter)
+app.use('/likes', likesRouter)
 app.use('/search', searchRouter)
 app.use('/static', staticRouter) // cách 2: Sử dụng router để phục vụ file tĩnh
 app.use('/static/video', express.static(UPLOAD_VIDEO_DIR))

@@ -9,8 +9,8 @@ const likesRouter = Router()
  * Description: Like Tweet
  * Path: /
  * Method: POST
- * Body: { tweet_id: string }
  * Header: { Authorization: Bearer <access_token> }
+ * Body: { tweet_id: string }
  */
 likesRouter.post(
   '/',

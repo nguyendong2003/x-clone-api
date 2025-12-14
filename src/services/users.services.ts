@@ -7,15 +7,13 @@ import { signToken, verifyToken } from '~/utils/jwt'
 import { StringValue } from 'ms'
 import RefreshToken from '~/models/schemas/RefreshToken.schemas'
 import { ObjectId } from 'mongodb'
-import { config } from 'dotenv'
 import Follower from '~/models/schemas/Follower.schemas'
 import axios from 'axios'
 import { ErrorWithStatus } from '~/models/Errors'
 import { UsersMessages } from '~/constants/messages'
 import { HttpStatus } from '~/constants/httpStatus'
 import { sendForgotPasswordEmail, sendVerifyRegisterEmail } from '~/utils/email'
-
-config()
+import { EnvConfig } from '~/config/config'
 
 type SignTokenPayload = {
   user_id: string
@@ -31,9 +29,9 @@ class UsersService {
         token_type: TokenType.AccessToken,
         verify
       },
-      privateKey: process.env.JWT_SECRET_ACCESS_TOKEN as string,
+      privateKey: EnvConfig.JWT_SECRET_ACCESS_TOKEN as string,
       options: {
-        expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN as StringValue
+        expiresIn: EnvConfig.ACCESS_TOKEN_EXPIRES_IN as StringValue
       }
     })
   }
@@ -47,7 +45,7 @@ class UsersService {
           verify,
           exp
         },
-        privateKey: process.env.JWT_SECRET_REFRESH_TOKEN as string
+        privateKey: EnvConfig.JWT_SECRET_REFRESH_TOKEN as string
       })
     }
 
@@ -57,9 +55,9 @@ class UsersService {
         token_type: TokenType.RefreshToken,
         verify
       },
-      privateKey: process.env.JWT_SECRET_REFRESH_TOKEN as string,
+      privateKey: EnvConfig.JWT_SECRET_REFRESH_TOKEN as string,
       options: {
-        expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN as StringValue
+        expiresIn: EnvConfig.REFRESH_TOKEN_EXPIRES_IN as StringValue
       }
     })
   }
@@ -75,9 +73,9 @@ class UsersService {
         token_type: TokenType.EmailVerifyToken,
         verify
       },
-      privateKey: process.env.JWT_SECRET_EMAIL_VERIFY_TOKEN as string,
+      privateKey: EnvConfig.JWT_SECRET_EMAIL_VERIFY_TOKEN as string,
       options: {
-        expiresIn: process.env.EMAIL_VERIFY_TOKEN_EXPIRES_IN as StringValue
+        expiresIn: EnvConfig.EMAIL_VERIFY_TOKEN_EXPIRES_IN as StringValue
       }
     })
   }
@@ -89,9 +87,9 @@ class UsersService {
         token_type: TokenType.ForgotPasswordToken,
         verify
       },
-      privateKey: process.env.JWT_SECRET_FORGOT_PASSWORD_TOKEN as string,
+      privateKey: EnvConfig.JWT_SECRET_FORGOT_PASSWORD_TOKEN as string,
       options: {
-        expiresIn: process.env.FORGOT_PASSWORD_TOKEN_EXPIRES_IN as StringValue
+        expiresIn: EnvConfig.FORGOT_PASSWORD_TOKEN_EXPIRES_IN as StringValue
       }
     })
   }
@@ -99,7 +97,7 @@ class UsersService {
   private decodeRefreshToken(refresh_token: string) {
     return verifyToken({
       token: refresh_token,
-      secretOrPublicKey: process.env.JWT_SECRET_REFRESH_TOKEN as string
+      secretOrPublicKey: EnvConfig.JWT_SECRET_REFRESH_TOKEN as string
     })
   }
 
@@ -192,9 +190,9 @@ class UsersService {
   private async getOAuthGoogleToken(code: string) {
     const body = {
       code,
-      client_id: process.env.GOOGLE_OAUTH_CLIENT_ID,
-      client_secret: process.env.GOOGLE_OAUTH_CLIENT_SECRET,
-      redirect_uri: process.env.GOOGLE_OAUTH_REDIRECT_URI,
+      client_id: EnvConfig.GOOGLE_OAUTH_CLIENT_ID,
+      client_secret: EnvConfig.GOOGLE_OAUTH_CLIENT_SECRET,
+      redirect_uri: EnvConfig.GOOGLE_OAUTH_REDIRECT_URI,
       grant_type: 'authorization_code'
     }
 

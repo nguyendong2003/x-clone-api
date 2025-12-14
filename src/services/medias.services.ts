@@ -4,8 +4,7 @@ import sharp from 'sharp'
 import { UPLOAD_IMAGE_DIR, UPLOAD_VIDEO_DIR } from '~/constants/dir'
 import { getFiles, handleUploadImage, handleUploadVideo, handleUploadVideoHLS } from '~/utils/file'
 import fs from 'fs'
-import { isProduction } from '~/config/config'
-import { config } from 'dotenv'
+import { EnvConfig, isProduction } from '~/config/config'
 import { MediaType, VideoEncodeStatus } from '~/constants/enums'
 import { Media } from '~/models/Other'
 import { encodeHLSWithMultipleVideoStreams } from '~/utils/video'
@@ -15,8 +14,6 @@ import { uploadFileToS3 } from '~/utils/s3'
 import mime from 'mime'
 import { CompleteMultipartUploadCommandOutput } from '@aws-sdk/client-s3'
 import { rimrafSync } from 'rimraf'
-
-config()
 
 /**
  * Queue class to manage video encoding tasks
@@ -167,8 +164,8 @@ class MediasService {
 
         // return {
         //   url: isProduction
-        //     ? `${process.env.BASE_URL}/static/image/${newFullFilename}`
-        //     : `http://localhost:${process.env.PORT}/static/image/${newFullFilename}`,
+        //     ? `${EnvConfig.BASE_URL}/static/image/${newFullFilename}`
+        //     : `http://localhost:${EnvConfig.PORT}/static/image/${newFullFilename}`,
         //   type: MediaType.Image
         // }
       })
@@ -199,8 +196,8 @@ class MediasService {
 
         // return {
         //   url: isProduction
-        //     ? `${process.env.BASE_URL}/static/video/${newFilename}`
-        //     : `http://localhost:${process.env.PORT}/static/video/${newFilename}`,
+        //     ? `${EnvConfig.BASE_URL}/static/video/${newFilename}`
+        //     : `http://localhost:${EnvConfig.PORT}/static/video/${newFilename}`,
         //   type: MediaType.Video
         // }
       })
@@ -219,8 +216,8 @@ class MediasService {
         })
         return {
           url: isProduction
-            ? `${process.env.BASE_URL}/static/video-hls/${idName}/master.m3u8`
-            : `http://localhost:${process.env.PORT}/static/video-hls/${idName}/master.m3u8`,
+            ? `${EnvConfig.BASE_URL}/static/video-hls/${idName}/master.m3u8`
+            : `http://localhost:${EnvConfig.PORT}/static/video-hls/${idName}/master.m3u8`,
           type: MediaType.VideoHLS
         }
       })

@@ -1,5 +1,4 @@
 import { Collection, Db, MongoClient } from 'mongodb'
-import { config } from 'dotenv'
 import User from '~/models/schemas/User.schemas'
 import RefreshToken from '~/models/schemas/RefreshToken.schemas'
 import Follower from '~/models/schemas/Follower.schemas'
@@ -9,10 +8,9 @@ import Hashtag from '~/models/schemas/Hashtag.schemas'
 import Bookmark from '~/models/schemas/Bookmark.schemas'
 import Like from '~/models/schemas/Like.schemas'
 import Conversation from '~/models/schemas/Conversations.schema'
+import { EnvConfig } from '~/config/config'
 
-config()
-
-const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.m3n5vlw.mongodb.net/?appName=Cluster0`
+const uri = EnvConfig.DB_CONNECTION
 
 class DatabaseService {
   private client: MongoClient
@@ -20,7 +18,7 @@ class DatabaseService {
 
   constructor() {
     this.client = new MongoClient(uri)
-    this.db = this.client.db(process.env.DB_NAME)
+    this.db = this.client.db(EnvConfig.DB_NAME)
   }
 
   async connect() {
@@ -76,39 +74,39 @@ class DatabaseService {
   }
 
   get users(): Collection<User> {
-    return this.db.collection(process.env.DB_USERS_COLLECTION as string)
+    return this.db.collection(EnvConfig.DB_USERS_COLLECTION as string)
   }
 
   get refreshTokens(): Collection<RefreshToken> {
-    return this.db.collection(process.env.DB_REFRESH_TOKENS_COLLECTION as string)
+    return this.db.collection(EnvConfig.DB_REFRESH_TOKENS_COLLECTION as string)
   }
 
   get followers(): Collection<Follower> {
-    return this.db.collection(process.env.DB_FOLLOWERS_COLLECTION as string)
+    return this.db.collection(EnvConfig.DB_FOLLOWERS_COLLECTION as string)
   }
 
   get videoStatus(): Collection<VideoStatus> {
-    return this.db.collection(process.env.DB_VIDEO_STATUS_COLLECTION as string)
+    return this.db.collection(EnvConfig.DB_VIDEO_STATUS_COLLECTION as string)
   }
 
   get tweets(): Collection<Tweet> {
-    return this.db.collection(process.env.DB_TWEETS_COLLECTION as string)
+    return this.db.collection(EnvConfig.DB_TWEETS_COLLECTION as string)
   }
 
   get hashtags(): Collection<Hashtag> {
-    return this.db.collection(process.env.DB_HASHTAGS_COLLECTION as string)
+    return this.db.collection(EnvConfig.DB_HASHTAGS_COLLECTION as string)
   }
 
   get bookmarks(): Collection<Bookmark> {
-    return this.db.collection(process.env.DB_BOOKMARKS_COLLECTION as string)
+    return this.db.collection(EnvConfig.DB_BOOKMARKS_COLLECTION as string)
   }
 
   get likes(): Collection<Like> {
-    return this.db.collection(process.env.DB_LIKES_COLLECTION as string)
+    return this.db.collection(EnvConfig.DB_LIKES_COLLECTION as string)
   }
 
   get conversations(): Collection<Conversation> {
-    return this.db.collection(process.env.DB_CONVERSATIONS_COLLECTION as string)
+    return this.db.collection(EnvConfig.DB_CONVERSATIONS_COLLECTION as string)
   }
 }
 

@@ -4,7 +4,6 @@ import databaseService from '~/services/database.services'
 import { defaultErrorHandler } from '~/middlewares/error.middlewares'
 import mediasRouter from '~/routes/medias.routes'
 import { initFolderIfNotExists } from '~/utils/file'
-import { config } from 'dotenv'
 import staticRouter from '~/routes/static.routes'
 import { UPLOAD_VIDEO_DIR } from '~/constants/dir'
 import cors from 'cors'
@@ -19,6 +18,7 @@ import YAML from 'yaml'
 import fs from 'fs'
 import path from 'path'
 import swaggerUi from 'swagger-ui-express'
+import { EnvConfig } from '~/config/config'
 
 // Load Swagger document
 const file = fs.readFileSync(path.resolve('swagger.yaml'), 'utf8')
@@ -28,8 +28,6 @@ const swaggerDocument = YAML.parse(file)
  * File này chỉ để fake dữ liệu khi dev, chỉ cần uncomment này lên và chạy server thì sẽ chạy file này tiếp, vì vậy khi chạy xong thì comment dòng này lại
  */
 // import '~/utils/fake' // Chạy file fake dữ liệu
-
-config()
 
 // Kết nối đến database khi khởi động server và tạo index cho collection users
 databaseService.connect().then(() => {
@@ -46,7 +44,7 @@ const app = express()
 const httpServer = createServer(app)
 
 app.use(cors())
-const port = process.env.PORT || 4000
+const PORT = EnvConfig.PORT
 
 // Init folder uploads
 initFolderIfNotExists()
@@ -70,6 +68,6 @@ app.use(defaultErrorHandler)
 // Init socket.io
 initSocket(httpServer)
 
-httpServer.listen(port, () => {
-  console.log(`Server is running at http://localhost:${port}`)
+httpServer.listen(PORT, () => {
+  console.log(`Server is running at http://localhost:${PORT}`)
 })

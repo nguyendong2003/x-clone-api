@@ -15,6 +15,14 @@ import likesRouter from '~/routes/likes.routes'
 import conversationsRouter from '~/routes/conversations.routes'
 import { createServer } from 'http'
 import initSocket from '~/utils/socket'
+import YAML from 'yaml'
+import fs from 'fs'
+import path from 'path'
+import swaggerUi from 'swagger-ui-express'
+
+// Load Swagger document
+const file = fs.readFileSync(path.resolve('swagger.yaml'), 'utf8')
+const swaggerDocument = YAML.parse(file)
 
 /**
  * File này chỉ để fake dữ liệu khi dev, chỉ cần uncomment này lên và chạy server thì sẽ chạy file này tiếp, vì vậy khi chạy xong thì comment dòng này lại
@@ -44,6 +52,7 @@ const port = process.env.PORT || 4000
 initFolderIfNotExists()
 
 app.use(express.json()) // Middleware to parse JSON bodies
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument))
 app.use('/users', usersRouter)
 app.use('/medias', mediasRouter)
 app.use('/tweets', tweetsRouter)

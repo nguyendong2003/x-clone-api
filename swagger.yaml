@@ -1,0 +1,996 @@
+openapi: 3.0.3
+info:
+  title: X API
+  version: 1.0.0
+  description: This is the API documentation for X Clone, a social media platform.
+servers:
+  - url: http://localhost:{port}
+    description: Local dev
+    variables:
+      port:
+        default: '4000'
+  - url: https://api.x-clone.com
+    description: Production
+tags:
+  - name: users
+  - name: tweets
+  - name: medias
+  - name: likes
+  - name: bookmarks
+  - name: search
+  - name: conversations
+  - name: static
+paths:
+  /users/login:
+    post:
+      tags: [users]
+      summary: Login with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: 'Login success' }
+                  result: { $ref: '#/components/schemas/AuthTokens' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /users/oauth/google:
+    get:
+      tags: [users]
+      summary: OAuth login via Google (redirect)
+      parameters:
+        - in: query
+          name: code
+          required: true
+          schema: { type: string }
+      responses:
+        '302':
+          description: Redirects to client with tokens query params
+  /users/register:
+    post:
+      tags: [users]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '200':
+          description: Register success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  result: { $ref: '#/components/schemas/AuthTokens' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+  /users/logout:
+    post:
+      tags: [users]
+      summary: Logout current session
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogoutRequest'
+      responses:
+        '200':
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageOnly'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /users/refresh-token:
+    post:
+      tags: [users]
+      summary: Refresh access/refresh tokens
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '200':
+          description: Refresh success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  result: { $ref: '#/components/schemas/AuthTokens' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /users/verify-email:
+    post:
+      tags: [users]
+      summary: Verify email using token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyEmailRequest'
+      responses:
+        '200':
+          description: Email verified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageOnly'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /users/resend-verify-email:
+    post:
+      tags: [users]
+      summary: Resend email verification
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Resent verify email
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageOnly'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /users/forgot-password:
+    post:
+      tags: [users]
+      summary: Submit email to receive forgot password link
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgotPasswordRequest'
+      responses:
+        '200':
+          description: Forgot password initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageOnly'
+  /users/verify-forgot-password:
+    post:
+      tags: [users]
+      summary: Verify forgot password token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyForgotPasswordRequest'
+      responses:
+        '200':
+          description: Verified token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageOnly'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /users/reset-password:
+    post:
+      tags: [users]
+      summary: Reset password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+      responses:
+        '200':
+          description: Password reset
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageOnly'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /users/me:
+    get:
+      tags: [users]
+      summary: Get my profile
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  result: { $ref: '#/components/schemas/UserPublic' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    patch:
+      tags: [users]
+      summary: Update my profile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMeRequest'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  result: { $ref: '#/components/schemas/UserPublic' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /users/{username}:
+    get:
+      tags: [users]
+      summary: Get user profile by username
+      parameters:
+        - $ref: '#/components/parameters/Username'
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  result: { $ref: '#/components/schemas/UserPublic' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /users/follow:
+    post:
+      tags: [users]
+      summary: Follow a user
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FollowRequest'
+      responses:
+        '200':
+          description: Followed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageOnly'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /users/unfollow/{followed_user_id}:
+    delete:
+      tags: [users]
+      summary: Unfollow a user
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/FollowedUserId'
+      responses:
+        '200':
+          description: Unfollowed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageOnly'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /users/change-password:
+    put:
+      tags: [users]
+      summary: Change password
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+      responses:
+        '200':
+          description: Password changed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageOnly'
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /tweets:
+    post:
+      tags: [tweets]
+      summary: Create a tweet
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TweetReqBody'
+      responses:
+        '200':
+          description: Tweet created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  result: { $ref: '#/components/schemas/Tweet' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    get:
+      tags: [tweets]
+      summary: Get new feeds
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Page'
+      responses:
+        '200':
+          description: New feeds
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  result:
+                    type: object
+                    properties:
+                      tweets:
+                        type: array
+                        items: { $ref: '#/components/schemas/Tweet' }
+                      pagination: { $ref: '#/components/schemas/Pagination' }
+  /tweets/{tweet_id}:
+    get:
+      tags: [tweets]
+      summary: Get tweet by id
+      parameters:
+        - $ref: '#/components/parameters/TweetIdParam'
+      responses:
+        '200':
+          description: Tweet
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  result: { $ref: '#/components/schemas/Tweet' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /tweets/{tweet_id}/children:
+    get:
+      tags: [tweets]
+      summary: Get tweet children
+      parameters:
+        - $ref: '#/components/parameters/TweetIdParam'
+        - in: query
+          name: tweet_type
+          required: true
+          schema:
+            type: integer
+            enum: [0, 1, 2, 3]
+            description: 0=Tweet,1=Retweet,2=Comment,3=QuoteTweet
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Page'
+      responses:
+        '200':
+          description: Children tweets
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  result:
+                    type: object
+                    properties:
+                      tweets:
+                        type: array
+                        items: { $ref: '#/components/schemas/Tweet' }
+                      tweet_type:
+                        type: integer
+                        enum: [0, 1, 2, 3]
+                      pagination: { $ref: '#/components/schemas/Pagination' }
+  /likes:
+    post:
+      tags: [likes]
+      summary: Like a tweet
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LikeTweetRequest'
+      responses:
+        '200':
+          description: Liked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  result: { $ref: '#/components/schemas/Like' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /likes/tweets/{tweet_id}:
+    delete:
+      tags: [likes]
+      summary: Unlike a tweet
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TweetIdParam'
+      responses:
+        '200':
+          description: Unliked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageOnly'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /bookmarks:
+    post:
+      tags: [bookmarks]
+      summary: Bookmark a tweet
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookmarkRequest'
+      responses:
+        '200':
+          description: Bookmarked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  result: { $ref: '#/components/schemas/Bookmark' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /bookmarks/tweets/{tweet_id}:
+    delete:
+      tags: [bookmarks]
+      summary: Remove bookmark
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TweetIdParam'
+      responses:
+        '200':
+          description: Unbookmarked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageOnly'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /search:
+    get:
+      tags: [search]
+      summary: Search tweets
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: content
+          required: true
+          schema: { type: string }
+        - in: query
+          name: media_type
+          schema: { type: string, enum: ['image', 'video'] }
+        - in: query
+          name: people_follow
+          schema: { type: string, enum: ['0', '1'] }
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Page'
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  result:
+                    type: object
+                    properties:
+                      tweets:
+                        type: array
+                        items: { $ref: '#/components/schemas/Tweet' }
+                      pagination: { $ref: '#/components/schemas/Pagination' }
+  /conversations/receivers/{receiver_id}:
+    get:
+      tags: [conversations]
+      summary: Get conversations with a receiver
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ReceiverId'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Page'
+      responses:
+        '200':
+          description: Conversations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  result:
+                    type: object
+                    properties:
+                      conversations:
+                        type: array
+                        items: { $ref: '#/components/schemas/Conversation' }
+                      pagination: { $ref: '#/components/schemas/Pagination' }
+  /medias/upload-image:
+    post:
+      tags: [medias]
+      summary: Upload image
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Uploaded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  result: { type: string, format: uri }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /medias/upload-video:
+    post:
+      tags: [medias]
+      summary: Upload video
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Uploaded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  result: { type: string, format: uri }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /medias/upload-video-hls:
+    post:
+      tags: [medias]
+      summary: Upload video and encode HLS
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Uploaded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  result: { type: string, format: uri }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /medias/video-status/{id}:
+    get:
+      tags: [medias]
+      summary: Get video encode status
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/VideoId'
+      responses:
+        '200':
+          description: Encode status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  result: { $ref: '#/components/schemas/VideoStatus' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /static/image/{imageName}:
+    get:
+      tags: [static]
+      summary: Serve image
+      parameters:
+        - in: path
+          name: imageName
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Image content }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /static/video-stream/{videoName}:
+    get:
+      tags: [static]
+      summary: Stream video file (HTTP partial content)
+      parameters:
+        - in: path
+          name: videoName
+          required: true
+          schema: { type: string }
+        - in: header
+          name: Range
+          required: true
+          schema: { type: string }
+      responses:
+        '206': { description: Partial content stream }
+        '400': { $ref: '#/components/responses/BadRequest' }
+  /static/video-hls/{id}/master.m3u8:
+    get:
+      tags: [static]
+      summary: Serve HLS master playlist
+      parameters:
+        - $ref: '#/components/parameters/VideoId'
+      responses:
+        '200': { description: M3U8 content }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /static/video-hls/{id}/{v}/{segment}:
+    get:
+      tags: [static]
+      summary: Serve HLS segment
+      parameters:
+        - $ref: '#/components/parameters/VideoId'
+        - in: path
+          name: v
+          required: true
+          schema: { type: string }
+        - in: path
+          name: segment
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: TS segment content }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    TweetIdParam:
+      in: path
+      name: tweet_id
+      schema: { type: string }
+      required: true
+    Username:
+      in: path
+      name: username
+      schema: { type: string }
+      required: true
+    FollowedUserId:
+      in: path
+      name: followed_user_id
+      schema: { type: string }
+      required: true
+    ReceiverId:
+      in: path
+      name: receiver_id
+      schema: { type: string }
+      required: true
+    VideoId:
+      in: path
+      name: id
+      schema: { type: string }
+      required: true
+    Limit:
+      in: query
+      name: limit
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+    Page:
+      in: query
+      name: page
+      schema: { type: integer, minimum: 1, default: 1 }
+  responses:
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    MessageOnly:
+      type: object
+      properties:
+        message: { type: string }
+    Error:
+      type: object
+      properties:
+        message: { type: string }
+      required: [message]
+    AuthTokens:
+      type: object
+      properties:
+        access_token: { type: string }
+        refresh_token: { type: string }
+      required: [access_token, refresh_token]
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, minLength: 6 }
+    RegisterRequest:
+      type: object
+      required: [name, email, password, confirm_password, date_of_birth]
+      properties:
+        name: { type: string }
+        email: { type: string, format: email }
+        password: { type: string, minLength: 6 }
+        confirm_password: { type: string, minLength: 6 }
+        date_of_birth: { type: string, format: date }
+    LogoutRequest:
+      type: object
+      required: [refresh_token]
+      properties:
+        refresh_token: { type: string }
+    RefreshTokenRequest:
+      type: object
+      required: [refresh_token]
+      properties:
+        refresh_token: { type: string }
+    VerifyEmailRequest:
+      type: object
+      required: [email_verify_token]
+      properties:
+        email_verify_token: { type: string }
+    ForgotPasswordRequest:
+      type: object
+      required: [email]
+      properties:
+        email: { type: string, format: email }
+    VerifyForgotPasswordRequest:
+      type: object
+      required: [forgot_password_token]
+      properties:
+        forgot_password_token: { type: string }
+    ResetPasswordRequest:
+      type: object
+      required: [forgot_password_token, password, confirm_password]
+      properties:
+        forgot_password_token: { type: string }
+        password: { type: string, minLength: 6 }
+        confirm_password: { type: string, minLength: 6 }
+    UpdateMeRequest:
+      type: object
+      properties:
+        name: { type: string }
+        date_of_birth: { type: string, format: date }
+        bio: { type: string }
+        location: { type: string }
+        website: { type: string }
+        username: { type: string }
+        avatar: { type: string, format: uri }
+        cover_photo: { type: string, format: uri }
+    UserPublic:
+      type: object
+      properties:
+        _id: { type: string }
+        name: { type: string }
+        email: { type: string, format: email }
+        date_of_birth: { type: string, format: date }
+        verify: { type: integer, description: '0=Unverified,1=Verified,2=Banned' }
+        bio: { type: string }
+        location: { type: string }
+        website: { type: string }
+        username: { type: string }
+        avatar: { type: string, format: uri }
+        cover_photo: { type: string, format: uri }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    FollowRequest:
+      type: object
+      required: [followed_user_id]
+      properties:
+        followed_user_id: { type: string }
+    ChangePasswordRequest:
+      type: object
+      required: [old_password, password, confirm_password]
+      properties:
+        old_password: { type: string }
+        password: { type: string }
+        confirm_password: { type: string }
+    Media:
+      type: object
+      properties:
+        url: { type: string, format: uri }
+        type:
+          type: integer
+          enum: [0, 1, 2]
+          description: 0=Image,1=Video,2=VideoHLS
+    TweetReqBody:
+      type: object
+      required: [type, audience, content, parent_id, hashtags, mentions, medias]
+      properties:
+        type:
+          type: integer
+          enum: [0, 1, 2, 3]
+          description: 0=Tweet,1=Retweet,2=Comment,3=QuoteTweet
+        audience:
+          type: integer
+          enum: [0, 1]
+          description: 0=Everyone,1=TwitterCircle
+        content: { type: string }
+        parent_id: { type: string, nullable: true }
+        hashtags:
+          type: array
+          items: { type: string }
+        mentions:
+          type: array
+          items: { type: string }
+        medias:
+          type: array
+          items: { $ref: '#/components/schemas/Media' }
+    UserMention:
+      type: object
+      properties:
+        _id: { type: string }
+        name: { type: string }
+        username: { type: string }
+        email: { type: string, format: email }
+    Tweet:
+      type: object
+      properties:
+        _id: { type: string }
+        user_id: { type: string }
+        type: { type: integer, enum: [0, 1, 2, 3] }
+        audience: { type: integer, enum: [0, 1] }
+        content: { type: string }
+        parent_id: { type: string, nullable: true }
+        hashtags:
+          type: array
+          items: { type: string }
+        mentions:
+          type: array
+          items: { $ref: '#/components/schemas/UserMention' }
+        medias:
+          type: array
+          items: { $ref: '#/components/schemas/Media' }
+        bookmarks: { type: integer }
+        likes: { type: integer }
+        retweet_count: { type: integer }
+        comment_count: { type: integer }
+        quote_count: { type: integer }
+        guest_views: { type: integer }
+        user_views: { type: integer }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    Pagination:
+      type: object
+      properties:
+        limit: { type: integer }
+        page: { type: integer }
+        total_page: { type: integer }
+    LikeTweetRequest:
+      type: object
+      required: [tweet_id]
+      properties:
+        tweet_id: { type: string }
+    Like:
+      type: object
+      properties:
+        _id: { type: string }
+        user_id: { type: string }
+        tweet_id: { type: string }
+        created_at: { type: string, format: date-time }
+    BookmarkRequest:
+      type: object
+      required: [tweet_id]
+      properties:
+        tweet_id: { type: string }
+    Bookmark:
+      type: object
+      properties:
+        _id: { type: string }
+        user_id: { type: string }
+        tweet_id: { type: string }
+        created_at: { type: string, format: date-time }
+    Conversation:
+      type: object
+      properties:
+        _id: { type: string }
+        sender_id: { type: string }
+        receiver_id: { type: string }
+        content: { type: string }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    VideoStatus:
+      type: object
+      properties:
+        _id: { type: string }
+        name: { type: string }
+        status:
+          type: integer
+          enum: [0, 1, 2, 3]
+          description: 0=Pending,1=Processing,2=Success,3=Failed
+        message: { type: string }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }

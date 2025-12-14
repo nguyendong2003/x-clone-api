@@ -15,11 +15,13 @@ export const getConversationsController = async (req: Request<GetConversationsPa
   })
   return res.json({
     result: {
-      limit,
-      page,
-      total_page: Math.ceil(result.total / limit),
-      conversations: result.conversations
+      conversations: result.conversations,
+      pagination: {
+        limit,
+        page,
+        total_page: Math.ceil(result.total / limit)
+      }
     },
-    message: 'Get conversations successfully'
+    message: 'Get conversations success'
   })
 }

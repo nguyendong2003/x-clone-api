@@ -1,6 +1,5 @@
 import { exec } from 'child_process'
 import path from 'path'
-import fs from 'fs'
 
 const MAXIMUM_BITRATE_720P = 5 * 10 ** 6
 const MAXIMUM_BITRATE_1080P = 8 * 10 ** 6
@@ -38,15 +37,7 @@ const getWidth = (height: number, resolution: { width: number; height: number })
 
 export const encodeHLSWithMultipleVideoStreams = async (inputPath: string) => {
   const [bitrate, resolution] = await Promise.all([getBitrate(inputPath), getResolution(inputPath)])
-
   const parent_folder = path.dirname(inputPath)
-
-  // Create v0 v1 v2 v3
-  for (let i = 0; i < 4; i++) {
-    const folder = path.join(parent_folder, `v${i}`)
-    if (!fs.existsSync(folder)) fs.mkdirSync(folder)
-  }
-
   const outputSegmentPath = path.join(parent_folder, 'v%v/fileSequence%d.ts')
   const outputPath = path.join(parent_folder, 'v%v/prog_index.m3u8')
 

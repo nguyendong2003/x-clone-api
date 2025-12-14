@@ -1,8 +1,8 @@
 import { Request } from 'express'
 import path from 'path'
 import sharp from 'sharp'
-import { UPLOAD_IMAGE_DIR } from '~/constants/dir'
-import { handleUploadImage, handleUploadVideo, handleUploadVideoHLS } from '~/utils/file'
+import { UPLOAD_IMAGE_DIR, UPLOAD_VIDEO_DIR } from '~/constants/dir'
+import { getFiles, handleUploadImage, handleUploadVideo, handleUploadVideoHLS } from '~/utils/file'
 import fs from 'fs'
 import { isProduction } from '~/config/config'
 import { config } from 'dotenv'
@@ -11,24 +11,23 @@ import { Media } from '~/models/Other'
 import { encodeHLSWithMultipleVideoStreams } from '~/utils/video'
 import databaseService from './database.services'
 import VideoStatus from '~/models/schemas/VideoStatus.schemas'
+import { uploadFileToS3 } from '~/utils/s3'
+import mime from 'mime'
+import { CompleteMultipartUploadCommandOutput } from '@aws-sdk/client-s3'
+import { rimrafSync } from 'rimraf'
 
 config()
-
-const getIdNameFromPath = (filePath: string) => {
-  // item example: /home/user/uploads/videos/hwd0umat9dismppijavj88fqx.mp4  => id: hwd0umat9dismppijavj88fqx
-  // const idName = item.split('/').pop()?.split('.')[0] as string
-  // console.log('Enqueue video for encoding, id:', idName)
-
-  // item example: D:\LearnDTD\LearnNodeJS\Twitter\uploads\videos\ZoPqlcOZjdvIW5PjCfyQQ\ZoPqlcOZjdvIW5PjCfyQQ.mp4  => id: ZoPqlcOZjdvIW5PjCfyQQ
-  const idName = filePath.split('\\').pop()?.split('.')[0] as string
-  return idName
-}
 
 /**
  * Queue class to manage video encoding tasks
  */
+interface Item {
+  filepath: string
+  idName: string
+}
+
 class Queue {
-  items: string[]
+  items: Item[]
   encoding: boolean
 
   constructor() {
@@ -36,15 +35,10 @@ class Queue {
     this.encoding = false
   }
 
-  async enqueue(item: string) {
+  async enqueue(item: Item) {
     this.items.push(item)
 
-    // item example: /home/user/uploads/videos/hwd0umat9dismppijavj88fqx.mp4  => id: hwd0umat9dismppijavj88fqx
-    // const idName = item.split('/').pop()?.split('.')[0] as string
-    // console.log('Enqueue video for encoding, id:', idName)
-
-    // item example: D:\LearnDTD\LearnNodeJS\Twitter\uploads\videos\ZoPqlcOZjdvIW5PjCfyQQ\ZoPqlcOZjdvIW5PjCfyQQ.mp4  => id: ZoPqlcOZjdvIW5PjCfyQQ
-    const idName = getIdNameFromPath(item)
+    const idName = item.idName
     await databaseService.videoStatus.insertOne(
       new VideoStatus({
         name: idName,
@@ -58,9 +52,8 @@ class Queue {
     if (this.encoding || this.items.length === 0) return
     if (this.items.length > 0) {
       this.encoding = true
-      const videoPath = this.items[0]
-      // const idName = videoPath.split('/').pop()?.split('.')[0] as string
-      const idName = getIdNameFromPath(videoPath)
+      const videoItem = this.items[0]
+      const idName = videoItem.idName
       await databaseService.videoStatus.updateOne(
         {
           name: idName
@@ -76,10 +69,30 @@ class Queue {
       )
 
       try {
-        console.log('>>>> video path: ', videoPath)
+        await encodeHLSWithMultipleVideoStreams(videoItem.filepath)
+        await fs.promises.unlink(videoItem.filepath) // Xóa file gốc sau khi đã chuyển đổi
 
-        await encodeHLSWithMultipleVideoStreams(videoPath)
-        await fs.promises.unlink(videoPath) // Xóa file gốc sau khi đã chuyển đổi
+        // Lấy tất cả các file đã được tạo ra trong thư mục con của video HLS và upload lên S3. Sau đó xóa thư mục local
+        const files = getFiles(path.resolve(UPLOAD_VIDEO_DIR, idName))
+        await Promise.all(
+          files.map((filepath) => {
+            // Lấy path tương đối từ UPLOAD_VIDEO_DIR. Example -> relativePath: abc123/v0/fileSequence0.ts
+            const relativePath = path.relative(path.resolve(UPLOAD_VIDEO_DIR), filepath)
+
+            // Chuẩn hóa cho S3
+            const s3Key = `videos-hls/${relativePath.split(path.sep).join('/')}`
+
+            return uploadFileToS3({
+              filepath,
+              filename: s3Key,
+              contentType: mime.getType(filepath) as string
+            })
+          })
+        )
+
+        rimrafSync(path.resolve(UPLOAD_VIDEO_DIR, idName)) // Xóa thư mục local sau khi đã upload lên S3
+        //
+
         await databaseService.videoStatus.updateOne(
           {
             name: idName
@@ -93,7 +106,7 @@ class Queue {
             }
           }
         )
-        console.log(`Encode video ${videoPath} success`)
+        console.log(`Encode video ${idName} - ${videoItem.filepath} success`)
       } catch (error) {
         await databaseService.videoStatus
           .updateOne(
@@ -112,7 +125,7 @@ class Queue {
           .catch((err) => {
             console.error('Update video status failed error:', err)
           })
-        console.error(`Error encoding ${videoPath} error:`, error)
+        console.error(`Error encoding ${idName} - ${videoItem.filepath} error:`, error)
       }
       this.items.shift()
       this.encoding = false
@@ -130,17 +143,34 @@ class MediasService {
     const files = await handleUploadImage(req)
     const result: Media[] = await Promise.all(
       files.map(async (file) => {
-        const newFileName = file.newFilename.split('.')[0]
-        const newFilePath = path.resolve(UPLOAD_IMAGE_DIR, `${newFileName}.jpg`)
+        const newFilename = file.newFilename.split('.')[0]
+        const newFullFilename = `${newFilename}.jpg`
+        const newFilePath = path.resolve(UPLOAD_IMAGE_DIR, newFullFilename)
+
         await sharp(file.filepath).jpeg().toFile(newFilePath)
-        fs.unlinkSync(file.filepath) // Xóa file tạm sau khi đã chuyển đổi và lưu
+
+        const s3Result = await uploadFileToS3({
+          filename: 'images/' + newFullFilename,
+          filepath: newFilePath,
+          contentType: mime.getType(newFilePath) as string
+        })
+
+        await Promise.all([
+          fs.promises.unlink(file.filepath), // Xóa file tạm sau khi đã chuyển đổi và lưu
+          fs.promises.unlink(newFilePath) // Xóa file local sau khi đã upload lên S3
+        ])
 
         return {
-          url: isProduction
-            ? `${process.env.BASE_URL}/static/image/${newFileName}.jpg`
-            : `http://localhost:${process.env.PORT}/static/image/${newFileName}.jpg`,
+          url: (s3Result as CompleteMultipartUploadCommandOutput).Location as string,
           type: MediaType.Image
         }
+
+        // return {
+        //   url: isProduction
+        //     ? `${process.env.BASE_URL}/static/image/${newFullFilename}`
+        //     : `http://localhost:${process.env.PORT}/static/image/${newFullFilename}`,
+        //   type: MediaType.Image
+        // }
       })
     )
 
@@ -149,16 +179,32 @@ class MediasService {
 
   async uploadVideo(req: Request) {
     const files = await handleUploadVideo(req)
-    const result: Media[] = files.map((file) => {
-      const newFileName = file.newFilename
-      return {
-        url: isProduction
-          ? `${process.env.BASE_URL}/static/video/${newFileName}`
-          : `http://localhost:${process.env.PORT}/static/video/${newFileName}`,
-        type: MediaType.Video
-      }
-    })
+    const result: Media[] = await Promise.all(
+      files.map(async (file) => {
+        const newFilename = file.newFilename
 
+        const s3Result = await uploadFileToS3({
+          filename: 'videos/' + newFilename,
+          filepath: file.filepath,
+          contentType: mime.getType(file.filepath) as string
+        })
+
+        // Xóa file local sau khi đã upload lên S3
+        fs.promises.unlink(file.filepath)
+
+        return {
+          url: (s3Result as CompleteMultipartUploadCommandOutput).Location as string,
+          type: MediaType.Video
+        }
+
+        // return {
+        //   url: isProduction
+        //     ? `${process.env.BASE_URL}/static/video/${newFilename}`
+        //     : `http://localhost:${process.env.PORT}/static/video/${newFilename}`,
+        //   type: MediaType.Video
+        // }
+      })
+    )
     return result
   }
 
@@ -166,11 +212,11 @@ class MediasService {
     const files = await handleUploadVideoHLS(req)
     const result: Media[] = await Promise.all(
       files.map(async (file) => {
-        // await encodeHLSWithMultipleVideoStreams(file.filepath)
-        // await fs.promises.unlink(file.filepath) // Xóa file gốc sau khi đã chuyển đổi
-        encodeQueue.enqueue(file.filepath)
-        // const newFileName = file.newFilename
         const idName = file.newFilename.split('.')[0]
+        encodeQueue.enqueue({
+          filepath: file.filepath,
+          idName
+        })
         return {
           url: isProduction
             ? `${process.env.BASE_URL}/static/video-hls/${idName}/master.m3u8`

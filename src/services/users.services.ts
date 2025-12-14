@@ -13,6 +13,7 @@ import axios from 'axios'
 import { ErrorWithStatus } from '~/models/Errors'
 import { UsersMessages } from '~/constants/messages'
 import { HttpStatus } from '~/constants/httpStatus'
+import { sendForgotPasswordEmail, sendVerifyRegisterEmail } from '~/utils/email'
 
 config()
 
@@ -129,6 +130,16 @@ class UsersService {
     await databaseService.refreshTokens.insertOne(
       new RefreshToken({ user_id: result.insertedId, token: refresh_token, iat, exp })
     )
+    /**
+      Flow verify email
+      1. Server send email to user
+      2. User click link in email
+      3. Client send request to server with email_verify_token
+      4. Server verify email_verify_token
+      5. Client receive access_token and refresh_token
+     */
+
+    await sendVerifyRegisterEmail(payload.email, email_verify_token)
 
     return {
       access_token,
@@ -371,8 +382,11 @@ class UsersService {
     */
   }
 
-  async resendVerifyEmail(user_id: string) {
+  async resendVerifyEmail(user_id: string, email: string) {
     const email_verify_token = await this.signEmailVerifyToken({ user_id, verify: UserVerifyStatus.Unverified })
+
+    await sendVerifyRegisterEmail(email, email_verify_token)
+
     const result = await databaseService.users.updateOne({ _id: new ObjectId(user_id) }, [
       {
         $set: {
@@ -385,7 +399,7 @@ class UsersService {
     return result
   }
 
-  async forgotPassword({ user_id, verify }: SignTokenPayload) {
+  async forgotPassword({ user_id, verify, email }: { user_id: string; verify: UserVerifyStatus; email: string }) {
     const forgot_password_token = await this.signForgotPasswordToken({ user_id, verify })
     const result = await databaseService.users.updateOne({ _id: new ObjectId(user_id) }, [
       {
@@ -396,8 +410,8 @@ class UsersService {
       }
     ])
 
-    // Send email to user with forgot_password_token (reset password link): https://yourdomain.com/forgot-password?token=forgot_password_token
-    console.log(`Send email to user with forgot password token: ${forgot_password_token}`)
+    await sendForgotPasswordEmail(email, forgot_password_token)
+
     return result
   }
 

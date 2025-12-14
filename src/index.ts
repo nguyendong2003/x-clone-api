@@ -12,6 +12,9 @@ import tweetsRouter from '~/routes/tweets.routes'
 import bookmarksRouter from '~/routes/bookmarks.routes'
 import searchRouter from '~/routes/search.routes'
 import likesRouter from '~/routes/likes.routes'
+import conversationsRouter from '~/routes/conversations.routes'
+import { createServer } from 'http'
+import initSocket from '~/utils/socket'
 
 /**
  * File này chỉ để fake dữ liệu khi dev, chỉ cần uncomment này lên và chạy server thì sẽ chạy file này tiếp, vì vậy khi chạy xong thì comment dòng này lại
@@ -30,6 +33,10 @@ databaseService.connect().then(() => {
 })
 
 const app = express()
+
+// Create HTTP server to use with socket.io
+const httpServer = createServer(app)
+
 app.use(cors())
 const port = process.env.PORT || 4000
 
@@ -43,6 +50,7 @@ app.use('/tweets', tweetsRouter)
 app.use('/bookmarks', bookmarksRouter)
 app.use('/likes', likesRouter)
 app.use('/search', searchRouter)
+app.use('/conversations', conversationsRouter)
 app.use('/static', staticRouter) // cách 2: Sử dụng router để phục vụ file tĩnh
 app.use('/static/video', express.static(UPLOAD_VIDEO_DIR))
 // app.use('/static', express.static(UPLOAD_IMAGE_DIR)) // cách 1: Serve static files from the uploads directory
@@ -50,6 +58,9 @@ app.use('/static/video', express.static(UPLOAD_VIDEO_DIR))
 // Global error handler
 app.use(defaultErrorHandler)
 
-app.listen(port, () => {
+// Init socket.io
+initSocket(httpServer)
+
+httpServer.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`)
 })

@@ -11,7 +11,7 @@ import {
   paginationValidator,
   tweetIdValidator,
   tweetsValidator
-} from '~/middlewares/tweets.middleswares'
+} from '~/middlewares/tweets.middlewares'
 import {
   accessTokenValidator,
   optionalAccessTokenValidator,

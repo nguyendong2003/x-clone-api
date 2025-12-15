@@ -1,0 +1,20 @@
+FROM node:22-alpine
+
+WORKDIR /app
+
+# Cài tool cần cho dev
+RUN apk add --no-cache ffmpeg
+
+# Copy package files trước để cache npm
+COPY package.json package-lock.json ./
+
+# Cài TẤT CẢ dependencies (cả devDependencies)
+RUN npm install
+
+# Copy source code
+COPY . .
+
+EXPOSE 4000
+
+# Chạy dev (nodemon + ts-node / tsx)
+CMD ["npm", "run", "dev"]

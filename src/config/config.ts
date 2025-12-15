@@ -1,13 +1,31 @@
-// Kiểm tra xem có tham số --production trong command line không
-import argv from 'minimist'
+// config environment variables based on NODE_ENV (using NODE_ENV and PM2)
 import { config } from 'dotenv'
+import fs from 'fs'
+import path from 'path'
 
-const options = argv(process.argv.slice(2))
+const env = process.env.NODE_ENV
+const envFilename = `.env.${env}`
 
-export const isProduction = options.env === 'production'
+if (!env) {
+  console.log(`Bạn chưa cung cấp biến môi trường NODE_ENV (ví dụ: development, production)`)
+  console.log(`Phát hiện NODE_ENV = ${env}`)
+  process.exit(1)
+}
+
+console.log(`Phát hiện NODE_ENV = ${env}, vì thế app sẽ dùng file môi trường là ${envFilename}`)
+
+if (!fs.existsSync(path.resolve(envFilename))) {
+  console.log(`Không tìm thấy file môi trường ${envFilename}`)
+  console.log(`Lưu ý: App không dùng file .env, ví dụ môi trường là development thì app sẽ dùng file .env.development`)
+  console.log(`Vui lòng tạo file ${envFilename}`)
+  process.exit(1)
+}
+
 config({
-  path: options.env ? `.env.${options.env}` : '.env'
+  path: envFilename
 })
+
+export const isProduction = env === 'production'
 
 // config env variables
 export const EnvConfig = {

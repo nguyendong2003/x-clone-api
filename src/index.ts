@@ -6,7 +6,7 @@ import mediasRouter from '~/routes/medias.routes'
 import { initFolderIfNotExists } from '~/utils/file'
 import staticRouter from '~/routes/static.routes'
 import { UPLOAD_VIDEO_DIR } from '~/constants/dir'
-import cors from 'cors'
+import cors, { CorsOptions } from 'cors'
 import tweetsRouter from '~/routes/tweets.routes'
 import bookmarksRouter from '~/routes/bookmarks.routes'
 import searchRouter from '~/routes/search.routes'
@@ -18,7 +18,8 @@ import YAML from 'yaml'
 import fs from 'fs'
 import path from 'path'
 import swaggerUi from 'swagger-ui-express'
-import { EnvConfig } from '~/config/config'
+import { EnvConfig, isProduction } from '~/config/config'
+import helmet from 'helmet'
 
 // Load Swagger document
 const file = fs.readFileSync(path.resolve('swagger.yaml'), 'utf8')
@@ -43,7 +44,13 @@ const app = express()
 // Create HTTP server to use with socket.io
 const httpServer = createServer(app)
 
-app.use(cors())
+// Setup security middlewares (helmet, cors)
+app.use(helmet())
+const corsOptions: CorsOptions = {
+  origin: isProduction ? EnvConfig.CLIENT_BASE_URL : '*'
+}
+app.use(cors(corsOptions))
+//
 const PORT = EnvConfig.PORT
 
 // Init folder uploads

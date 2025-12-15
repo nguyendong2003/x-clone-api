@@ -20,6 +20,7 @@ import path from 'path'
 import swaggerUi from 'swagger-ui-express'
 import { EnvConfig, isProduction } from '~/config/config'
 import helmet from 'helmet'
+import rateLimit from 'express-rate-limit'
 
 // Load Swagger document
 const file = fs.readFileSync(path.resolve('swagger.yaml'), 'utf8')
@@ -40,9 +41,19 @@ databaseService.connect().then(() => {
 })
 
 const app = express()
-
 // Create HTTP server to use with socket.io
 const httpServer = createServer(app)
+
+// Apply rate limiting to all requests
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  limit: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
+  standardHeaders: 'draft-8', // draft-6: `RateLimit-*` headers; draft-7 & draft-8: combined `RateLimit` header
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
+  ipv6Subnet: 56 // Set to 60 or 64 to be less aggressive, or 52 or 48 to be more aggressive
+  // store: ... , // Redis, Memcached, etc. See below.
+})
+app.use(limiter)
 
 // Setup security middlewares (helmet, cors)
 app.use(helmet())

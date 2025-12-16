@@ -25,6 +25,7 @@ RUN npm ci --omit=dev --quiet \
 
 COPY --from=builder /app/dist ./dist
 COPY ecosystem.config.js .
+COPY src/templates ./src/templates
 
 EXPOSE 3000
 

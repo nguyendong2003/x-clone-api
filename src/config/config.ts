@@ -14,16 +14,16 @@ if (!env) {
 
 console.log(`Phát hiện NODE_ENV = ${env}, vì thế app sẽ dùng file môi trường là ${envFilename}`)
 
-if (!fs.existsSync(path.resolve(envFilename))) {
-  console.log(`Không tìm thấy file môi trường ${envFilename}`)
-  console.log(`Lưu ý: App không dùng file .env, ví dụ môi trường là development thì app sẽ dùng file .env.development`)
-  console.log(`Vui lòng tạo file ${envFilename}`)
-  process.exit(1)
+const envPath = path.resolve(envFilename)
+if (fs.existsSync(envPath)) {
+  config({ path: envPath })
+} else {
+  console.warn(`Không tìm thấy file môi trường ${envFilename}`)
+  console.warn(
+    `Lưu ý: App có thể chạy bằng biến môi trường đã được truyền (ví dụ: Docker --env/--env-file, PM2 ecosystem).`
+  )
+  console.warn(`Tiếp tục khởi chạy với process.env hiện có.`)
 }
-
-config({
-  path: envFilename
-})
 
 export const isProduction = env === 'production'
 

@@ -37,7 +37,8 @@ jobs:
           port: ${{ secrets.PORT }}
           script: |
             echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+            echo "${{ secrets.X_CLONE_ENV_PRODUCTION }}" > .env.production
             docker pull dongcoi14122003/x-clone:v1.0.0
             docker stop x-clone || true
             docker rm x-clone || true
-            docker run -dp 4000:4000 --name x-clone --restart unless-stopped -v ~/x-clone/uploads:/app/uploads dongcoi14122003/x-clone:v1.0.0
+            docker run -dp 3000:3000 --name x-clone --restart unless-stopped --env-file .env.production -v ~/x-clone/uploads:/app/uploads dongcoi14122003/x-clone:v1.0.0

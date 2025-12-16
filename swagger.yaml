@@ -1,8 +1,56 @@
 openapi: 3.0.3
 info:
-  title: X API
+  title: XClone - Social Media Platform Backend
   version: 1.0.0
-  description: This is the API documentation for X Clone, a social media platform.
+  description: |
+    ## XClone API Documentation
+    This document describes the Backend API for **XClone** — a production-ready social media platform inspired by real-world systems such as **X (Twitter), YouTube, and Netflix**.
+
+    ## 🚀 Technologies
+
+    ### Language & Backend
+    - **TypeScript**
+    - **Node.js & Express.js**
+
+    ### Database
+    - **MongoDB** ecosystem:
+      - MongoDB Driver
+      - MongoDB Compass
+      - MongoDB Atlas (Cloud)
+
+    ### Authentication & Security
+    - **OAuth 2.0** authentication with Google
+    - Security implemented via Express middlewares:
+      - `helmet` - HTTP security headers
+      - `cors` - Cross-Origin Resource Sharing configuration
+      - `express-rate-limit` - API rate limiting
+
+    ### Realtime & Streaming
+    - **HLS Video Streaming** using `ffmpeg`
+      - Applicable to video platforms like YouTube or Netflix
+    - **WebSocket with Socket.io**
+      - Realtime chat
+
+    ### Cloud
+    - **AWS Services**:
+      - S3 for file and media storage
+      - SES for transactional email (verification, password reset)
+
+    ### Testing & API Documentation
+    - **Postman** 
+    - **Swagger**
+
+    ### DevOps & Deployment
+    - **Docker** for containerization
+    - **Nginx** as a reverse proxy
+    - **PM2** for Node.js process management
+    - **CI/CD with GitHub Actions**
+    - Deployment on **VPS**, including:
+      - Domain configuration
+      - DNS setup
+      - SSL
+      - Production environment configuration
+
 servers:
   - url: http://localhost:{port}
     description: Local dev

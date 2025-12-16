@@ -2,19 +2,20 @@ FROM node:22-alpine
 
 WORKDIR /app
 
-# Cài tool cần cho dev
+COPY package.json .
+COPY package-lock.json .
+COPY tsconfig.json .
+COPY ecosystem.config.js .
+COPY .env.development .
+COPY swagger.yaml .
+COPY ./src ./src
+
 RUN apk add --no-cache ffmpeg
-
-# Copy package files trước để cache npm
-COPY package.json package-lock.json ./
-
-# Cài TẤT CẢ dependencies (cả devDependencies)
+RUN apk add python3
+RUN npm install pm2 -g
 RUN npm install
-
-# Copy source code
-COPY . .
+RUN npm run build
 
 EXPOSE 4000
 
-# Chạy dev (nodemon + ts-node / tsx)
-CMD ["npm", "run", "dev"]
+CMD ["pm2-runtime", "start", "ecosystem.config.js"]

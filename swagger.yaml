@@ -9,7 +9,7 @@ servers:
     variables:
       port:
         default: '4000'
-  - url: https://api.x-clone.com
+  - url: https://nguyendong.io.vn
     description: Production
 tags:
   - name: users
